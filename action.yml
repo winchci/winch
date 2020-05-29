@@ -11,9 +11,9 @@ inputs:
     default: 'golang'
 runs:
   using: 'docker'
-  image: "winchci/${{ inputs.platform }}:latest"
+  image: "winchci/${{ platform }}:latest"
   args:
-    - 'winch ci -f ${{ inputs.filename }}'
+    - 'winch ci -f ${{ filename }}'
 branding:
   icon: 'anchor'
   color: 'purple'
