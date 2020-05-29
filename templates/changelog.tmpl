@@ -1,0 +1,24 @@
+# CHANGELOG
+
+{{with $changelog := . -}}
+{{range .Releases -}}
+{{if eq .Version "" -}}
+## Unreleased
+{{else -}}
+## [{{.Version}}]({{$changelog.Repository}}/compare/{{.Version}}..{{.PreviousVersion}}) ({{.Date}})
+{{end -}}
+{{range .Sections}}
+{{if .IsBreaking}}
+### {{.Title}}
+{{range .Commits}}
+* {{.Message.BreakingMessage}}
+{{- end}}
+{{- else -}}
+### {{.Title}}
+{{range .Commits}}
+* {{.Message.ScopePrefix}}{{.Message.Subject}} ([{{.ShortHash}}]({{$changelog.Repository}}/commit/{{.Hash}}))
+{{- end}}
+{{end}}
+{{end}}
+{{end}}
+{{end}}

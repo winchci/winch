@@ -1,0 +1,11 @@
+FROM openjdk:14-jdk-alpine
+RUN adduser -S -D -h /app {{.Name}} && \
+    apk update && \
+    apk --no-cache upgrade && \
+    apk --no-cache add ca-certificates && \
+    mkdir -p /app/bin
+USER {{.Name}}
+COPY ./bin/{{.Name}} /app/bin/
+WORKDIR /app
+ENTRYPOINT ["/app/bin/{{.Name}}"]
+EXPOSE 5000

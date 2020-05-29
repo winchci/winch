@@ -1,0 +1,11 @@
+FROM node:alpine
+RUN adduser -S -D -h /app {{.Name}} && \
+    apk update && \
+    apk --no-cache upgrade && \
+    apk --no-cache add ca-certificates
+USER {{.Name}}
+COPY . /app
+WORKDIR /app
+RUN npm install --production
+ENTRYPOINT ["npm", "run", "start"]
+EXPOSE 5000

@@ -1,0 +1,220 @@
+package docker
+
+import (
+	"bufio"
+	"context"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
+	"github.com/mholt/archiver/v3"
+	"github.com/switch-bit/winch/config"
+	"github.com/switch-bit/winch/version"
+	"io"
+	"io/ioutil"
+	"os"
+	"path"
+	"strings"
+)
+
+type dockerErrorMsg struct {
+	Message string `json:"message"`
+}
+type dockerMsg struct {
+	Status      string         `json:"status"`
+	Message     string         `json:"stream"`
+	ErrorDetail dockerErrorMsg `json:"errorDetail"`
+}
+
+type Docker struct {
+	cfg    *config.DockerConfig
+	client *client.Client
+	token  string
+}
+
+func NewDocker(cfg *config.DockerConfig, name string) (*Docker, error) {
+	if cfg.Context == "" {
+		cfg.Context = "."
+	}
+
+	if len(cfg.Server) == 0 {
+		cfg.Server = os.Getenv("DOCKERHUB_SERVER")
+	}
+
+	if len(cfg.Server) == 0 {
+		cfg.Server = "docker.io"
+	}
+
+	if len(cfg.Organization) == 0 {
+		cfg.Organization = os.Getenv("DOCKERHUB_ORGANIZATION")
+	}
+
+	if len(cfg.Organization) == 0 {
+		return nil, fmt.Errorf("the DockerHub organization is required")
+	}
+
+	if len(cfg.Repository) == 0 {
+		cfg.Repository = os.Getenv("DOCKERHUB_REPOSITORY")
+	}
+
+	if len(cfg.Repository) == 0 {
+		cfg.Repository = name
+	}
+
+	if len(cfg.Repository) == 0 {
+		return nil, fmt.Errorf("the DockerHub repository is required")
+	}
+
+	if len(cfg.Username) == 0 {
+		cfg.Username = os.Getenv("DOCKERHUB_USERNAME")
+	}
+
+	if len(cfg.Username) == 0 {
+		return nil, fmt.Errorf("the DockerHub usename is required")
+	}
+
+	if len(cfg.Password) == 0 {
+		cfg.Password = os.Getenv("DOCKERHUB_PASSWORD")
+	}
+
+	if len(cfg.Password) == 0 {
+		return nil, fmt.Errorf("the DockerHub password is required")
+	}
+
+	if len(cfg.Tag) == 0 {
+		cfg.Tag = "latest"
+	}
+
+	cfg.Server = os.ExpandEnv(cfg.Server)
+	cfg.Organization = os.ExpandEnv(cfg.Organization)
+	cfg.Repository = os.ExpandEnv(cfg.Repository)
+	cfg.Username = os.ExpandEnv(cfg.Username)
+	cfg.Password = os.ExpandEnv(cfg.Password)
+
+	c, err := client.NewEnvClient()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Docker{
+		cfg:    cfg,
+		client: c,
+	}, nil
+}
+
+func (d *Docker) Login(ctx context.Context) error {
+	_, err := d.client.RegistryLogin(ctx, types.AuthConfig{
+		Username:      d.cfg.Username,
+		Password:      d.cfg.Password,
+		ServerAddress: d.cfg.Server,
+	})
+	if err != nil {
+		return err
+	}
+
+	b, err := json.Marshal(types.AuthConfig{
+		Username:      d.cfg.Username,
+		Password:      d.cfg.Password,
+		ServerAddress: d.cfg.Server,
+	})
+	if err != nil {
+		return err
+	}
+
+	d.token = base64.StdEncoding.EncodeToString(b)
+
+	return nil
+}
+
+func (d Docker) Build(ctx context.Context, tag string) error {
+	dir, err := ioutil.TempDir("", version.Name)
+	if err != nil {
+		return err
+	}
+
+	defer os.RemoveAll(dir)
+
+	context := path.Join(dir, "context.tar")
+	err = archiver.Archive([]string{d.cfg.Context}, context)
+	if err != nil {
+		return err
+	}
+
+	f, err := os.Open(context)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+
+	var tags []string
+	baseTag := fmt.Sprintf("%s/%s/%s", d.cfg.Server, d.cfg.Organization, d.cfg.Repository)
+	if d.cfg.Tag == "latest" {
+		tags = append(tags, fmt.Sprintf("%s:%s", baseTag, d.cfg.Tag))
+		tags = append(tags, fmt.Sprintf("%s:%s", baseTag, tag))
+	} else if len(d.cfg.Tag) > 0 {
+		tags = append(tags, fmt.Sprintf("%s:%s", baseTag, d.cfg.Tag))
+		tags = append(tags, fmt.Sprintf("%s:%s-%s", baseTag, tag, d.cfg.Tag))
+	} else {
+		tags = append(tags, fmt.Sprintf("%s:%s", baseTag, tag))
+	}
+
+	resp, err := d.client.ImageBuild(ctx, f, types.ImageBuildOptions{
+		Tags:       tags,
+		Dockerfile: d.cfg.Dockerfile,
+		BuildArgs:  d.cfg.BuildArgs,
+	})
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	return printDockerResponse(resp.Body)
+}
+
+func (d Docker) Publish(ctx context.Context) error {
+	resp, err := d.client.ImagePush(ctx, fmt.Sprintf("%s/%s/%s", d.cfg.Server, d.cfg.Organization, d.cfg.Repository), types.ImagePushOptions{
+		RegistryAuth: d.token,
+		All:          true,
+	})
+	if err != nil {
+		return err
+	}
+	defer resp.Close()
+
+	return printDockerResponse(resp)
+}
+
+func printDockerResponse(body io.ReadCloser) error {
+	r := bufio.NewReader(body)
+	for {
+		line, err := r.ReadBytes('\n')
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+
+		var msg dockerMsg
+		err = json.Unmarshal(line, &msg)
+		if err != nil {
+			return err
+		}
+
+		if len(msg.Message) > 0 {
+			os.Stdout.WriteString(strings.TrimSpace(msg.Message))
+			os.Stdout.WriteString("\n")
+		}
+		if len(msg.Status) > 0 {
+			os.Stdout.WriteString(strings.TrimSpace(msg.Status))
+			os.Stdout.WriteString("\n")
+		}
+		if len(msg.ErrorDetail.Message) > 0 {
+			return errors.New(msg.ErrorDetail.Message)
+		}
+	}
+
+	return nil
+}

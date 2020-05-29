@@ -1,0 +1,11 @@
+FROM python:3.8-alpine
+RUN adduser -S -D -h /app {{.Name}} && \
+    apk update && \
+    apk --no-cache upgrade && \
+    apk --no-cache add ca-certificates && \
+    mkdir -p /app/bin
+USER {{.Name}}
+COPY . /app
+WORKDIR /app
+ENTRYPOINT ["python", "{{.Name}}.py"]
+EXPOSE 5000

@@ -1,0 +1,153 @@
+name: winch
+description: Universal build and release tool
+repository: https://github.com/switch-bit/winch
+verbose: true
+build:
+  command: |
+    mkdir -p bin
+    go get -u \
+        github.com/kisielk/errcheck \
+        golang.org/x/tools/cmd/goimports \
+        golang.org/x/lint/golint \
+        github.com/securego/gosec/cmd/gosec \
+        golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow \
+        honnef.co/go/tools/cmd/staticcheck
+    go build -o bin/winch ./cmd/winch/main.go
+    go build -o bin/errcheck github.com/kisielk/errcheck
+    go build -o bin/goimports golang.org/x/tools/cmd/goimports
+    go build -o bin/golint golang.org/x/lint/golint
+    go build -o bin/gosec github.com/securego/gosec/cmd/gosec
+    go build -o bin/shadow golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
+    go build -o bin/staticcheck honnef.co/go/tools/cmd/staticcheck
+version:
+  file: version/version_gen.go
+  template: version/winch_version.tmpl
+release:
+  branches:
+    only: master
+assets:
+- filename: templates/templates_gen.go
+  directory: templates
+  package: templates
+  variable: Assets
+  except:
+    - "/*.go"
+- filename: wordlists/wordlists_gen.go
+  directory: wordlists
+  package: wordlists
+  tag: "!dev"
+  variable: Assets
+  only:
+    - "/*.txt"
+dockers:
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: winch
+  tag: latest
+  buildargs:
+    image: base
+  branches:
+    only: master
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: golang
+  tag: latest
+  buildargs:
+    image: golang
+  branches:
+    only: master
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: java-mvn
+  tag: latest
+  buildargs:
+    image: java-mvn
+  branches:
+    only: master
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: node
+  tag: latest
+  buildargs:
+    image: node
+  branches:
+    only: master
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: python
+  tag: latest
+  buildargs:
+    image: python
+  branches:
+    only: master
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: scala-sbt
+  tag: latest
+  buildargs:
+    image: scala-sbt
+  branches:
+    only: master
+- dockerfile: Dockerfile
+  server: docker.pkg.github.com
+  organization: switch-bit
+  repository: winch/base
+  username: switch-bit
+  password: ${GITHUB_TOKEN}
+  buildargs:
+    image: base
+  branches:
+    only: master
+- dockerfile: Dockerfile
+  server: docker.pkg.github.com
+  organization: switch-bit
+  repository: winch/golang
+  username: switch-bit
+  password: ${GITHUB_TOKEN}
+  buildargs:
+    image: golang
+  branches:
+    only: master
+- dockerfile: Dockerfile
+  server: docker.pkg.github.com
+  organization: switch-bit
+  repository: winch/java-mvn
+  username: switch-bit
+  password: ${GITHUB_TOKEN}
+  buildargs:
+    image: java-mvn
+  branches:
+    only: master
+- dockerfile: Dockerfile
+  server: docker.pkg.github.com
+  organization: switch-bit
+  repository: winch/node
+  username: switch-bit
+  password: ${GITHUB_TOKEN}
+  buildargs:
+    image: node
+  branches:
+    only: master
+- dockerfile: Dockerfile
+  server: docker.pkg.github.com
+  organization: switch-bit
+  repository: winch/python
+  username: switch-bit
+  password: ${GITHUB_TOKEN}
+  buildargs:
+    image: python
+  branches:
+    only: master
+- dockerfile: Dockerfile
+  server: docker.pkg.github.com
+  organization: switch-bit
+  repository: winch/scala-sbt
+  username: switch-bit
+  password: ${GITHUB_TOKEN}
+  buildargs:
+    image: scala-sbt
+  branches:
+    only: master
+environment:
+  GO111MODULE: on
+  CGO_ENABLED: 0
