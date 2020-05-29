@@ -23,7 +23,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/coreos/go-semver/semver
+	"github.com/coreos/go-semver/semver"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
