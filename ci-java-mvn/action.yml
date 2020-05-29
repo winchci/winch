@@ -7,7 +7,7 @@ inputs:
     default: 'winch.yml'
 runs:
   using: 'docker'
-  image: "docker.pkg.github.com/switch-bit/winch/java-mvn:latest"
+  image: "winchci/java-mvn:latest"
   args:
     - 'winch ci -f ${{ inputs.filename }}'
 branding:

@@ -9,8 +9,8 @@ import (
 const (
 	Name        = "winch"
 	Description = "Universal build and release tool"
-	ReleaseName = "drab crocodile"
-	Version     = "0.20.2"
+	ReleaseName = "bright pronghorn"
+	Version     = "0.26.5"
 	Prerelease  = ""
 )
 
