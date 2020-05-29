@@ -1,4 +1,4 @@
-module github.com/switch-bit/winch
+module github.com/winchci/winch
 
 go 1.14
 

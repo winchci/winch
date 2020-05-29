@@ -1,6 +1,6 @@
 name: winch
 description: Universal build and release tool
-repository: https://github.com/switch-bit/winch
+repository: https://github.com/winchci/winch
 verbose: true
 build:
   command: |
@@ -84,66 +84,6 @@ dockers:
   organization: winchci
   repository: scala-sbt
   tag: latest
-  buildargs:
-    image: scala-sbt
-  branches:
-    only: master
-- dockerfile: Dockerfile
-  server: docker.pkg.github.com
-  organization: switch-bit
-  repository: winch/base
-  username: switch-bit
-  password: ${GITHUB_TOKEN}
-  buildargs:
-    image: base
-  branches:
-    only: master
-- dockerfile: Dockerfile
-  server: docker.pkg.github.com
-  organization: switch-bit
-  repository: winch/golang
-  username: switch-bit
-  password: ${GITHUB_TOKEN}
-  buildargs:
-    image: golang
-  branches:
-    only: master
-- dockerfile: Dockerfile
-  server: docker.pkg.github.com
-  organization: switch-bit
-  repository: winch/java-mvn
-  username: switch-bit
-  password: ${GITHUB_TOKEN}
-  buildargs:
-    image: java-mvn
-  branches:
-    only: master
-- dockerfile: Dockerfile
-  server: docker.pkg.github.com
-  organization: switch-bit
-  repository: winch/node
-  username: switch-bit
-  password: ${GITHUB_TOKEN}
-  buildargs:
-    image: node
-  branches:
-    only: master
-- dockerfile: Dockerfile
-  server: docker.pkg.github.com
-  organization: switch-bit
-  repository: winch/python
-  username: switch-bit
-  password: ${GITHUB_TOKEN}
-  buildargs:
-    image: python
-  branches:
-    only: master
-- dockerfile: Dockerfile
-  server: docker.pkg.github.com
-  organization: switch-bit
-  repository: winch/scala-sbt
-  username: switch-bit
-  password: ${GITHUB_TOKEN}
   buildargs:
     image: scala-sbt
   branches:

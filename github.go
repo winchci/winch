@@ -1,18 +1,35 @@
+/*
+winch - Universal Build and Release Tool
+Copyright (C) 2020 Switchbit, Inc.
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, either version 3 of the License,
+or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+License for more details.
+
+You should have received a copy of the GNU General Public License along with this program. If not,
+see <https://www.gnu.org/licenses/>.
+*/
+
 package winch
 
 import (
 	"context"
 	"fmt"
-	"github.com/coreos/go-semver/semver"
-	"github.com/google/go-github/v28/github"
-	"github.com/mholt/archiver/v3"
-	"github.com/switch-bit/winch/version"
-	"golang.org/x/oauth2"
 	"io/ioutil"
 	"mime"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/coreos/go-semver/semver"
+	"github.com/google/go-github/v28/github"
+	"github.com/mholt/archiver/v3"
+	"github.com/winchci/winch/version"
+	"golang.org/x/oauth2"
 )
 
 type GitHub struct {
