@@ -14,7 +14,7 @@ jobs:
       GO111MODULE: "on"
       CGO_ENABLED: "0"
       GOOS: "linux"
-      GOPRIVATE: "github.com/switch-bit"
+      GOPRIVATE: "github.com/winchci"
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
@@ -36,6 +36,7 @@ jobs:
 
     - name: Build winch
       run: |
+        go env
         mkdir -p bin
         go mod download
         go test ./...
