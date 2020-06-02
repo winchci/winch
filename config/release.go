@@ -19,7 +19,7 @@ package config
 // ReleaseConfig provides config for releases
 type ReleaseConfig struct {
 	RunConfig
-	Artifacts []string      `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
+	Artifacts []string `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
 }
 
 func (d *ReleaseConfig) IsEnabled() bool {

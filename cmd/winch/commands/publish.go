@@ -83,9 +83,20 @@ func publish2(ctx context.Context, cfg *config.Config) error {
 	}
 
 	if cfg.Dockerfile.IsEnabled() {
-		err = writeDockerfile(ctx, cfg, version)
+		err = writeDockerfile(ctx, cfg, cfg.Dockerfile, version, cfg.Dockerfile.File)
 		if err != nil {
 			return err
+		}
+	}
+
+	if cfg.Dockerfiles != nil {
+		for _, dockerfile := range cfg.Dockerfiles {
+			if dockerfile.IsEnabled() {
+				err = writeDockerfile(ctx, cfg, dockerfile, version, dockerfile.File)
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 

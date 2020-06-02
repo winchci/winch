@@ -66,9 +66,10 @@ func (c *RunConfig) IsEnabled() bool {
 
 // TemplateFileConfig provides config for files produced from templates
 type TemplateFileConfig struct {
-	Enabled  *bool  `json:"enabled,omitempty" yaml:"enabled,omitempty"`
-	Template string `json:"template,omitempty" yaml:"template,omitempty"`
-	File     string `json:"file,omitempty" yaml:"file,omitempty"`
+	Enabled   *bool             `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	Template  string            `json:"template,omitempty" yaml:"template,omitempty"`
+	File      string            `json:"file,omitempty" yaml:"file,omitempty"`
+	Variables map[string]string `json:"variables,omitempty" yaml:"variables,omitempty"`
 }
 
 func (c TemplateFileConfig) GetFile() string {
@@ -107,7 +108,9 @@ type Config struct {
 	AfterTest     *RunConfig                   `json:"after_test,omitempty" yaml:"after_test,omitempty"`
 	Changelog     *TemplateFileConfig          `json:"changelog,omitempty" yaml:"changelog,omitempty"`
 	Version       *TemplateFileConfig          `json:"version,omitempty" yaml:"version,omitempty"`
+	GitHubAction  *TemplateFileConfig          `json:"githubaction,omitempty" yaml:"githubaction,omitempty"`
 	Dockerfile    *TemplateFileConfig          `json:"dockerfile,omitempty" yaml:"dockerfile,omitempty"`
+	Dockerfiles   []*TemplateFileConfig        `json:"dockerfiles,omitempty" yaml:"dockerfiles,omitempty"`
 	Transom       *TransomConfig               `json:"transom,omitempty" yaml:"transom,omitempty"`
 	Database      *DatabaseConfig              `json:"database,omitempty" yaml:"database,omitempty"`
 	Dynamodb      *DynamoDBConfig              `json:"dynamodb,omitempty" yaml:"dynamodb,omitempty"`
@@ -148,6 +151,10 @@ var (
 		Version: &TemplateFileConfig{
 			Enabled: makeBool(false),
 		},
+		GitHubAction: &TemplateFileConfig{
+			Enabled:  makeBool(true),
+			Template: "!docker_action.tmpl",
+		},
 	}
 
 	DefaultGoConfig = &Config{
@@ -170,6 +177,10 @@ var (
 		Version: &TemplateFileConfig{
 			File:     "version/version_gen.go",
 			Template: "!version_go.tmpl",
+		},
+		GitHubAction: &TemplateFileConfig{
+			Enabled:  makeBool(true),
+			Template: "!go_action.tmpl",
 		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!go_dockerfile.tmpl",
@@ -196,41 +207,35 @@ var (
 				Command: "go fix ./...",
 			},
 			"errcheck": {
-                                Enabled: makeBool(true),
-                                Name:    "Errcheck",
-                                Command: "errcheck ./...",
-
+				Enabled: makeBool(true),
+				Name:    "Errcheck",
+				Command: "errcheck ./...",
 			},
-                        "imports": {
-                                Enabled: makeBool(true),
-                                Name:    "Import check",
-                                Command: "goimports -d -e . && goimports -l .",
-
-                        },
-                        "lint": {
-                                Enabled: makeBool(true),
-                                Name:    "Lint",
-                                Command: "golint -set_exit_status ./...",
-
-                        },
-                        "gosec": {
-                                Enabled: makeBool(true),
-                                Name:    "Gosec",
-                                Command: "gosec ./...",
-
-                        },
-                        "shadow": {
-                                Enabled: makeBool(true),
-                                Name:    "Shadow",
-                                Command: "go vet -vettool=$(which shadow) ./...",
-
-                        },
-                        "staticcheck": {
-                                Enabled: makeBool(true),
-                                Name:    "Staticcheck",
-                                Command: "staticcheck ./...",
-
-                        },
+			"imports": {
+				Enabled: makeBool(true),
+				Name:    "Import check",
+				Command: "goimports -d -e . && goimports -l .",
+			},
+			"lint": {
+				Enabled: makeBool(true),
+				Name:    "Lint",
+				Command: "golint -set_exit_status ./...",
+			},
+			"gosec": {
+				Enabled: makeBool(true),
+				Name:    "Gosec",
+				Command: "gosec ./...",
+			},
+			"shadow": {
+				Enabled: makeBool(true),
+				Name:    "Shadow",
+				Command: "go vet -vettool=$(which shadow) ./...",
+			},
+			"staticcheck": {
+				Enabled: makeBool(true),
+				Name:    "Staticcheck",
+				Command: "staticcheck ./...",
+			},
 		},
 	}
 
@@ -254,6 +259,10 @@ var (
 		},
 		Version: &TemplateFileConfig{
 			File: "package.json",
+		},
+		GitHubAction: &TemplateFileConfig{
+			Enabled:  makeBool(true),
+			Template: "!node_action.tmpl",
 		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!node_npm_dockerfile.tmpl",
@@ -293,6 +302,10 @@ var (
 		Version: &TemplateFileConfig{
 			File: "package.json",
 		},
+		GitHubAction: &TemplateFileConfig{
+			Enabled:  makeBool(true),
+			Template: "!node_action.tmpl",
+		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!node_yarn_dockerfile.tmpl",
 		},
@@ -329,6 +342,10 @@ var (
 		Version: &TemplateFileConfig{
 			Enabled: makeBool(false),
 		},
+		GitHubAction: &TemplateFileConfig{
+			Enabled:  makeBool(true),
+			Template: "!java_mvn_action.tmpl",
+		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!java_mvn_dockerfile.tmpl",
 		},
@@ -353,6 +370,10 @@ var (
 		Version: &TemplateFileConfig{
 			Enabled: makeBool(false),
 		},
+		GitHubAction: &TemplateFileConfig{
+			Enabled:  makeBool(true),
+			Template: "!scala_sbt_action.tmpl",
+		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!scala_sbt_dockerfile.tmpl",
 		},
@@ -372,6 +393,10 @@ var (
 		},
 		Version: &TemplateFileConfig{
 			Enabled: makeBool(false),
+		},
+		GitHubAction: &TemplateFileConfig{
+			Enabled:  makeBool(true),
+			Template: "!python_action.tmpl",
 		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!python_dockerfile.tmpl",

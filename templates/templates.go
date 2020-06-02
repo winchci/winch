@@ -91,4 +91,5 @@ func init() {
 
 			template.Must(t.New(f.Name()).Parse(string(data)))
 		}
-	}}
+	}
+}
