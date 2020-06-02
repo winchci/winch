@@ -226,32 +226,32 @@ var (
 			"errcheck": {
 				Enabled: makeBool(true),
 				Name:    "Errcheck",
-				Command: "errcheck ./...",
+				Command: "winch-go-errcheck ./...",
 			},
 			"imports": {
 				Enabled: makeBool(true),
 				Name:    "Import check",
-				Command: "goimports -d -e . && goimports -l .",
+				Command: "winch-go-imports -d -e . && goimports -l .",
 			},
 			"lint": {
 				Enabled: makeBool(true),
 				Name:    "Lint",
-				Command: "golint -set_exit_status ./...",
+				Command: "winch-go-lint -set_exit_status ./...",
 			},
 			"gosec": {
 				Enabled: makeBool(true),
 				Name:    "Gosec",
-				Command: "gosec ./...",
+				Command: "winch-go-sec ./...",
 			},
 			"shadow": {
 				Enabled: makeBool(true),
 				Name:    "Shadow",
-				Command: "go vet -vettool=$(which shadow) ./...",
+				Command: "go vet -vettool=$(which winch-go-shadow) ./...",
 			},
 			"staticcheck": {
 				Enabled: makeBool(true),
 				Name:    "Staticcheck",
-				Command: "staticcheck ./...",
+				Command: "winch-go-staticcheck ./...",
 			},
 		},
 	}
