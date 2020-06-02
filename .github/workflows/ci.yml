@@ -51,31 +51,31 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: winch-${{matrix.goos}}
-        path: bin/${{matrix.goos}/winch
+        path: bin/${{matrix.goos}}/winch
     - uses: actions/upload-artifact@v1
       with:
         name: winch-${{matrix.goos}}
-        path: bin/${{matrix.goos}/errcheck
+        path: bin/${{matrix.goos}}/errcheck
     - uses: actions/upload-artifact@v1
       with:
         name: winch-${{matrix.goos}}
-        path: bin/${{matrix.goos}/goimports
+        path: bin/${{matrix.goos}}/goimports
     - uses: actions/upload-artifact@v1
       with:
         name: winch-${{matrix.goos}}
-        path: bin/${{matrix.goos}/golint
+        path: bin/${{matrix.goos}}/golint
     - uses: actions/upload-artifact@v1
       with:
         name: winch-${{matrix.goos}}
-        path: bin/${{matrix.goos}/gosec
+        path: bin/${{matrix.goos}}/gosec
     - uses: actions/upload-artifact@v1
       with:
         name: winch-${{matrix.goos}}
-        path: bin/${{matrix.goos}/shadow
+        path: bin/${{matrix.goos}}/shadow
     - uses: actions/upload-artifact@v1
       with:
         name: winch-${{matrix.goos}}
-        path: bin/${{matrix.goos}/staticcheck
+        path: bin/${{matrix.goos}}/staticcheck
 
   release:
     name: Release
