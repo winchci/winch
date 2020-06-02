@@ -7,5 +7,5 @@ RUN adduser -S -D -h /app {{.Name}} && \
 USER {{.Name}}
 COPY ./bin/{{.Name}} /app/bin/
 WORKDIR /app
-ENTRYPOINT ["/app/bin/{{.Name}}", "start"]
+ENTRYPOINT ["/app/bin/{{.Name}}"]
 EXPOSE 5000

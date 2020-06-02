@@ -21,7 +21,7 @@ var Assets = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2020, 1, 10, 5, 2, 43, 14902862, time.UTC),
+			modTime: time.Date(2020, 6, 2, 8, 55, 52, 273141424, time.UTC),
 		},
 		"/adjectives.txt": &vfsgen۰CompressedFileInfo{
 			name:             "adjectives.txt",

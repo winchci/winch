@@ -20,7 +20,9 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/joho/godotenv"
@@ -66,9 +68,10 @@ func (c *RunConfig) IsEnabled() bool {
 
 // TemplateFileConfig provides config for files produced from templates
 type TemplateFileConfig struct {
-	Enabled  *bool  `json:"enabled,omitempty" yaml:"enabled,omitempty"`
-	Template string `json:"template,omitempty" yaml:"template,omitempty"`
-	File     string `json:"file,omitempty" yaml:"file,omitempty"`
+	Enabled   *bool             `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	Template  string            `json:"template,omitempty" yaml:"template,omitempty"`
+	File      string            `json:"file,omitempty" yaml:"file,omitempty"`
+	Variables map[string]string `json:"variables,omitempty" yaml:"variables,omitempty"`
 }
 
 func (c TemplateFileConfig) GetFile() string {
@@ -107,7 +110,9 @@ type Config struct {
 	AfterTest     *RunConfig                   `json:"after_test,omitempty" yaml:"after_test,omitempty"`
 	Changelog     *TemplateFileConfig          `json:"changelog,omitempty" yaml:"changelog,omitempty"`
 	Version       *TemplateFileConfig          `json:"version,omitempty" yaml:"version,omitempty"`
+	GitHubAction  *TemplateFileConfig          `json:"githubaction,omitempty" yaml:"githubaction,omitempty"`
 	Dockerfile    *TemplateFileConfig          `json:"dockerfile,omitempty" yaml:"dockerfile,omitempty"`
+	Dockerfiles   []*TemplateFileConfig        `json:"dockerfiles,omitempty" yaml:"dockerfiles,omitempty"`
 	Transom       *TransomConfig               `json:"transom,omitempty" yaml:"transom,omitempty"`
 	Database      *DatabaseConfig              `json:"database,omitempty" yaml:"database,omitempty"`
 	Dynamodb      *DynamoDBConfig              `json:"dynamodb,omitempty" yaml:"dynamodb,omitempty"`
@@ -134,6 +139,12 @@ func makeBool(b bool) *bool {
 
 // Default configurations
 var (
+	rebaseDependencies = &RunConfig{
+		Enabled: makeBool(true),
+		Name:    "Rebase dependencies",
+		Command: "git checkout master && git pull && git checkout dependencies && git rebase master && git push -f && git checkout master",
+	}
+
 	DefaultDockerConfig = &Config{
 		Language: "docker",
 		Install: &RunConfig{
@@ -147,6 +158,13 @@ var (
 		},
 		Version: &TemplateFileConfig{
 			Enabled: makeBool(false),
+		},
+		GitHubAction: &TemplateFileConfig{
+			Enabled:  makeBool(true),
+			Template: "!docker_action.tmpl",
+		},
+		Commands: map[string]*RunConfig{
+			"rebase-dep": rebaseDependencies,
 		},
 	}
 
@@ -171,10 +189,20 @@ var (
 			File:     "version/version_gen.go",
 			Template: "!version_go.tmpl",
 		},
+		GitHubAction: &TemplateFileConfig{
+			Enabled:  makeBool(true),
+			Template: "!go_action.tmpl",
+		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!go_dockerfile.tmpl",
 		},
 		Commands: map[string]*RunConfig{
+			"rebase-dep": rebaseDependencies,
+			"update-dep": {
+				Enabled: makeBool(true),
+				Name:    "Update dependencies",
+				Command: "git checkout master && git pull && go get -u ./... && go mod tidy && git add go.* && git commit -m 'chore(deps): upgraded dependencies' && git push && git checkout dependencies && git rebase master && git push -f && git checkout master",
+			},
 			"format-check": {
 				Enabled: makeBool(true),
 				Name:    "Check format",
@@ -196,41 +224,35 @@ var (
 				Command: "go fix ./...",
 			},
 			"errcheck": {
-                                Enabled: makeBool(true),
-                                Name:    "Errcheck",
-                                Command: "errcheck ./...",
-
+				Enabled: makeBool(true),
+				Name:    "Errcheck",
+				Command: "winch-go-errcheck ./...",
 			},
-                        "imports": {
-                                Enabled: makeBool(true),
-                                Name:    "Import check",
-                                Command: "goimports -d -e . && goimports -l .",
-
-                        },
-                        "lint": {
-                                Enabled: makeBool(true),
-                                Name:    "Lint",
-                                Command: "golint -set_exit_status ./...",
-
-                        },
-                        "gosec": {
-                                Enabled: makeBool(true),
-                                Name:    "Gosec",
-                                Command: "gosec ./...",
-
-                        },
-                        "shadow": {
-                                Enabled: makeBool(true),
-                                Name:    "Shadow",
-                                Command: "go vet -vettool=$(which shadow) ./...",
-
-                        },
-                        "staticcheck": {
-                                Enabled: makeBool(true),
-                                Name:    "Staticcheck",
-                                Command: "staticcheck ./...",
-
-                        },
+			"imports": {
+				Enabled: makeBool(true),
+				Name:    "Import check",
+				Command: "winch-go-imports -d -e . && goimports -l .",
+			},
+			"lint": {
+				Enabled: makeBool(true),
+				Name:    "Lint",
+				Command: "winch-go-lint -set_exit_status ./...",
+			},
+			"gosec": {
+				Enabled: makeBool(true),
+				Name:    "Gosec",
+				Command: "winch-go-sec ./...",
+			},
+			"shadow": {
+				Enabled: makeBool(true),
+				Name:    "Shadow",
+				Command: "go vet -vettool=$(which winch-go-shadow) ./...",
+			},
+			"staticcheck": {
+				Enabled: makeBool(true),
+				Name:    "Staticcheck",
+				Command: "winch-go-staticcheck ./...",
+			},
 		},
 	}
 
@@ -255,10 +277,20 @@ var (
 		Version: &TemplateFileConfig{
 			File: "package.json",
 		},
+		GitHubAction: &TemplateFileConfig{
+			Enabled:  makeBool(true),
+			Template: "!node_action.tmpl",
+		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!node_npm_dockerfile.tmpl",
 		},
 		Commands: map[string]*RunConfig{
+			"rebase-dep": rebaseDependencies,
+			"update-dep": {
+				Enabled: makeBool(true),
+				Name:    "Update dependencies",
+				Command: "git checkout master && git pull && npm upgrade && git add package*.json && git commit -m 'chore(deps): upgraded dependencies' && git push && git checkout dependencies && git rebase master && git push -f && git checkout master",
+			},
 			"format": {
 				Enabled: makeBool(true),
 				Name:    "Format",
@@ -293,10 +325,20 @@ var (
 		Version: &TemplateFileConfig{
 			File: "package.json",
 		},
+		GitHubAction: &TemplateFileConfig{
+			Enabled:  makeBool(true),
+			Template: "!node_action.tmpl",
+		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!node_yarn_dockerfile.tmpl",
 		},
 		Commands: map[string]*RunConfig{
+			"rebase-dep": rebaseDependencies,
+			"update-dep": {
+				Enabled: makeBool(true),
+				Name:    "Update dependencies",
+				Command: "git checkout master && git pull && yarn upgrade && git add package.json yarn.lock && git commit -m 'chore(deps): upgraded dependencies' && git push && git checkout dependencies && git rebase master && git push -f && git checkout master",
+			},
 			"format": {
 				Enabled: makeBool(true),
 				Name:    "Format",
@@ -329,8 +371,15 @@ var (
 		Version: &TemplateFileConfig{
 			Enabled: makeBool(false),
 		},
+		GitHubAction: &TemplateFileConfig{
+			Enabled:  makeBool(true),
+			Template: "!java_mvn_action.tmpl",
+		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!java_mvn_dockerfile.tmpl",
+		},
+		Commands: map[string]*RunConfig{
+			"rebase-dep": rebaseDependencies,
 		},
 	}
 
@@ -353,8 +402,15 @@ var (
 		Version: &TemplateFileConfig{
 			Enabled: makeBool(false),
 		},
+		GitHubAction: &TemplateFileConfig{
+			Enabled:  makeBool(true),
+			Template: "!scala_sbt_action.tmpl",
+		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!scala_sbt_dockerfile.tmpl",
+		},
+		Commands: map[string]*RunConfig{
+			"rebase-dep": rebaseDependencies,
 		},
 	}
 
@@ -373,8 +429,20 @@ var (
 		Version: &TemplateFileConfig{
 			Enabled: makeBool(false),
 		},
+		GitHubAction: &TemplateFileConfig{
+			Enabled:  makeBool(true),
+			Template: "!python_action.tmpl",
+		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!python_dockerfile.tmpl",
+		},
+		Commands: map[string]*RunConfig{
+			"rebase-dep": rebaseDependencies,
+			"update-dep": {
+				Enabled: makeBool(true),
+				Name:    "Update dependencies",
+				Command: "git checkout master && git pull && pip install pipupgrade && pipupgrade --verbose --latest --yes && git add requirements.txt && git commit -m 'chore(deps): upgraded dependencies' && git push && git checkout dependencies && git rebase master && git push -f && git checkout master",
+			},
 		},
 	}
 )
@@ -410,21 +478,27 @@ func AddConfigToContext(ctx context.Context, c *Config) context.Context {
 func LoadConfig(ctx context.Context) (context.Context, error) {
 	c := CommandFromContext(ctx)
 
+	filename := c.Flags().Lookup("file").Value.String()
+	for _, f := range strings.Split(filename, ":") {
+		f, err := filepath.Abs(f)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, err := os.Stat(f); err == nil {
+			filename = f
+		}
+	}
+
 	cfg := &Config{
-		Filename: c.Flags().Lookup("file").Value.String(),
+		Filename: filename,
+		BasePath: filepath.Dir(filename),
 		Language: "go",
 		Changelog: &TemplateFileConfig{
 			Template: "!changelog.tmpl",
 			File:     "CHANGELOG.md",
 		},
 	}
-
-	filename, err := filepath.Abs(cfg.Filename)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.BasePath = filepath.Dir(filename)
 
 	b, err := ioutil.ReadFile(cfg.Filename)
 	if err != nil {
@@ -513,6 +587,18 @@ func LoadConfig(ctx context.Context) (context.Context, error) {
 	}
 	if cfg.Test.Enabled == nil {
 		cfg.Test.Enabled = makeBool(true)
+	}
+
+	if cfg.GitHubAction == nil {
+		cfg.GitHubAction = defaultConfig.GitHubAction
+	} else {
+		if len(cfg.GitHubAction.Template) == 0 {
+			cfg.GitHubAction.Template = defaultConfig.GitHubAction.Template
+		}
+
+		if len(cfg.GitHubAction.File) == 0 {
+			cfg.GitHubAction.File = defaultConfig.GitHubAction.File
+		}
 	}
 
 	if cfg.Version == nil {

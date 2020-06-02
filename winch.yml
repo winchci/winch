@@ -4,27 +4,17 @@ repository: https://github.com/winchci/winch
 verbose: true
 build:
   command: |
-    mkdir -p bin
-    go get -u \
-        github.com/kisielk/errcheck \
-        golang.org/x/tools/cmd/goimports \
-        golang.org/x/lint/golint \
-        github.com/securego/gosec/cmd/gosec \
-        golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow \
-        honnef.co/go/tools/cmd/staticcheck
-    go build -o bin/winch ./cmd/winch/main.go
-    go build -o bin/errcheck github.com/kisielk/errcheck
-    go build -o bin/goimports golang.org/x/tools/cmd/goimports
-    go build -o bin/golint golang.org/x/lint/golint
-    go build -o bin/gosec github.com/securego/gosec/cmd/gosec
-    go build -o bin/shadow golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
-    go build -o bin/staticcheck honnef.co/go/tools/cmd/staticcheck
+    mkdir -p bin/linux
+    go build -o ./bin/linux/winch ./cmd/winch/main.go
 version:
   file: version/version_gen.go
   template: version/winch_version.tmpl
 release:
   branches:
     only: master
+  assets:
+    - ./bin/winch-darwin
+    - ./bin/winch-linux
 assets:
 - filename: templates/templates_gen.go
   directory: templates

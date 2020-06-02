@@ -37,7 +37,7 @@ type VersionBumpInfo struct {
 	Prerelease  string
 }
 
-func writeVersionGo(cfg *config.Config, version VersionBumpInfo) error {
+func writeVersionFromTemplate(cfg *config.Config, version VersionBumpInfo) error {
 	f, err := os.Create(filepath.Join(cfg.BasePath, cfg.Version.File))
 	if err != nil {
 		return err
@@ -45,7 +45,27 @@ func writeVersionGo(cfg *config.Config, version VersionBumpInfo) error {
 
 	defer f.Close()
 
-	err = templates.Load(cfg.BasePath, cfg.Version.Template).Execute(f, version)
+	vars := cfg.Version.Variables
+	if vars == nil {
+		vars = make(map[string]string)
+	}
+	if _, ok := vars["Name"]; !ok {
+		vars["Name"] = version.Name
+	}
+	if _, ok := vars["Version"]; !ok {
+		vars["Version"] = version.Version
+	}
+	if _, ok := vars["Description"]; !ok {
+		vars["Description"] = version.Description
+	}
+	if _, ok := vars["ReleaseName"]; !ok {
+		vars["ReleaseName"] = version.ReleaseName
+	}
+	if _, ok := vars["Prerelease"]; !ok {
+		vars["Prerelease"] = version.Prerelease
+	}
+
+	err = templates.Load(cfg.BasePath, cfg.Version.Template).Execute(f, vars)
 	if err != nil {
 		return err
 	}
@@ -79,11 +99,6 @@ func writeVersionNode(cfg *config.Config, version VersionBumpInfo) error {
 	return ioutil.WriteFile(cfg.Version.File, b, 0644)
 }
 
-var versionWriters = map[string]func(cfg *config.Config, version VersionBumpInfo) error{
-	"go":   writeVersionGo,
-	"node": writeVersionNode,
-}
-
 func getVersionFromReleases(releases []*winch.Release) (string, string) {
 	var version string
 	var prerelease string
@@ -103,13 +118,19 @@ func getVersionFromReleases(releases []*winch.Release) (string, string) {
 }
 
 func writeVersion(cfg *config.Config, version, prerelease string) error {
-	return versionWriters[cfg.Language](cfg, VersionBumpInfo{
+	vbi := VersionBumpInfo{
 		Name:        cfg.Name,
 		Description: cfg.Description,
 		Version:     version,
 		ReleaseName: winch.Name(context.Background(), "adjectives", "animals"),
 		Prerelease:  prerelease,
-	})
+	}
+
+	if cfg.Language == "node" {
+		return writeVersionNode(cfg, vbi)
+	} else {
+		return writeVersionFromTemplate(cfg, vbi)
+	}
 }
 
 func generateVersion(ctx context.Context) error {

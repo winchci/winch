@@ -18,7 +18,6 @@ package commands
 
 import (
 	"context"
-	"github.com/golang/protobuf/proto"
 	"github.com/spf13/cobra"
 	"github.com/winchci/winch/config"
 	"github.com/winchci/winch/templates"
@@ -26,7 +25,7 @@ import (
 	"path/filepath"
 )
 
-func writeDockerfile(_ context.Context, cfg *config.Config, t *config.TemplateFileConfig, version string, file string) error {
+func writeGithubAction(_ context.Context, cfg *config.Config, t *config.TemplateFileConfig, version string, file string) error {
 	if !t.IsEnabled() {
 		return nil
 	}
@@ -34,8 +33,9 @@ func writeDockerfile(_ context.Context, cfg *config.Config, t *config.TemplateFi
 	if len(file) == 0 {
 		file = t.File
 	}
+
 	if len(file) == 0 {
-		file = "Dockerfile"
+		file = ".github/workflows/ci.yml"
 	}
 
 	f, err := os.Create(filepath.Join(cfg.BasePath, file))
@@ -55,6 +55,9 @@ func writeDockerfile(_ context.Context, cfg *config.Config, t *config.TemplateFi
 	if _, ok := vars["Description"]; !ok {
 		vars["Description"] = cfg.Description
 	}
+	if _, ok := vars["Repository"]; !ok {
+		vars["Repository"] = cfg.Repository
+	}
 	if _, ok := vars["Language"]; !ok {
 		vars["Language"] = cfg.Language
 	}
@@ -70,7 +73,7 @@ func writeDockerfile(_ context.Context, cfg *config.Config, t *config.TemplateFi
 	return nil
 }
 
-func generateDockerfile(ctx context.Context) error {
+func generateGithubAction(ctx context.Context) error {
 	ctx, err := config.LoadConfig(ctx)
 	if err != nil {
 		return err
@@ -92,31 +95,16 @@ func generateDockerfile(ctx context.Context) error {
 		return err
 	}
 
-	dockerfiles := cfg.Dockerfiles
-	if dockerfiles == nil {
-		dockerfiles = make([]*config.TemplateFileConfig, 0)
-	}
-	if cfg.Dockerfile != nil {
-		dockerfiles = append(dockerfiles, cfg.Dockerfile)
-	}
+	action := cfg.GitHubAction
 
-	for _, dockerfile := range dockerfiles {
-		dockerfile.Enabled = proto.Bool(true)
-
-		err = writeDockerfile(ctx, cfg, dockerfile, version, output)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return writeGithubAction(ctx, cfg, action, version, output)
 }
 
 func init() {
 	var cmd = &cobra.Command{
-		Use:   "dockerfile",
-		Short: "Generate a Dockerfile",
-		Run:   Runner(generateDockerfile),
+		Use:   "action",
+		Short: "Generate a GitHub Action configuration file",
+		Run:   Runner(generateGithubAction),
 		Args:  cobra.NoArgs,
 	}
 

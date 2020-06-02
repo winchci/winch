@@ -34,6 +34,10 @@ type circleCIContext struct {
 }
 
 func writeCircleCI(_ context.Context, cfg *config.Config, version string, file string) error {
+	if len(file) == 0 {
+		file = ".circleci/config.yml"
+	}
+
 	f, err := os.Create(filepath.Join(cfg.BasePath, file))
 	if err != nil {
 		return err
@@ -75,10 +79,6 @@ func generateCircleCI(ctx context.Context) error {
 	output, err := cmd.Flags().GetString("output")
 	if err != nil {
 		return err
-	}
-
-	if len(output) == 0 {
-		output = ".circleci/config.yml"
 	}
 
 	return writeCircleCI(ctx, cfg, version, output)
