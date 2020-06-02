@@ -31,8 +31,8 @@ jobs:
     - uses: actions/cache@v1
       with:
         path: /home/runner/go/pkg/mod
-        key: v1-go-mod-${{ hashFiles('go.sum') }}
-        restore-keys: v1-go-mod-
+        key: v1-go-mod-${{ matrix.goos }}-${{ hashFiles('go.sum') }}
+        restore-keys: v1-go-mod-${{ matrix.goos }}
     - name: Build winch
       run: |
         mkdir -p bin/${{matrix.goos}}
@@ -54,36 +54,37 @@ jobs:
         go build -o bin/${{matrix.goos}}/staticcheck honnef.co/go/tools/cmd/staticcheck
     - uses: actions/upload-artifact@v1
       with:
-        name: winch-${{matrix.goos}}
+        name: winch-${{matrix.goos}}.zip
         path: bin/${{matrix.goos}}/winch
     - uses: actions/upload-artifact@v1
       with:
-        name: winch-${{matrix.goos}}
+        name: winch-${{matrix.goos}}.zip
         path: bin/${{matrix.goos}}/errcheck
     - uses: actions/upload-artifact@v1
       with:
-        name: winch-${{matrix.goos}}
+        name: winch-${{matrix.goos}}.zip
         path: bin/${{matrix.goos}}/goimports
     - uses: actions/upload-artifact@v1
       with:
-        name: winch-${{matrix.goos}}
+        name: winch-${{matrix.goos}}.zip
         path: bin/${{matrix.goos}}/golint
     - uses: actions/upload-artifact@v1
       with:
-        name: winch-${{matrix.goos}}
+        name: winch-${{matrix.goos}}.zip
         path: bin/${{matrix.goos}}/gosec
     - uses: actions/upload-artifact@v1
       with:
-        name: winch-${{matrix.goos}}
+        name: winch-${{matrix.goos}}.zip
         path: bin/${{matrix.goos}}/shadow
     - uses: actions/upload-artifact@v1
       with:
-        name: winch-${{matrix.goos}}
+        name: winch-${{matrix.goos}}.zip
         path: bin/${{matrix.goos}}/staticcheck
 
   release:
     name: Release
-    runs-on: build
+    if: ${{ github.ref }} == "master"
+    runs-on: ubuntu-latest
     needs: build
     steps:
     - uses: actions/download-artifact@v1
