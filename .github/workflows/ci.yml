@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  GO111MODULE: "on"
+  CGO_ENABLED: "0"
+  GOPRIVATE: "github.com/winchci"
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   build:
     name: Build
@@ -18,11 +24,7 @@ jobs:
         - os: macos-latest
           goos: darwin
     env:
-      GO111MODULE: "on"
-      CGO_ENABLED: "0"
       GOOS: ${{ matrix.goos }}
-      GOPRIVATE: "github.com/winchci"
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
     - uses: actions/setup-go@v2
       with:
@@ -62,6 +64,8 @@ jobs:
     if: ${{ github.ref }} == "master"
     runs-on: ubuntu-latest
     needs: build
+    env:
+      GOOS: linux
     steps:
     - uses: actions/setup-go@v2
       with:
