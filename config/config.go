@@ -137,6 +137,12 @@ func makeBool(b bool) *bool {
 
 // Default configurations
 var (
+	rebaseDependencies = &RunConfig{
+		Enabled: makeBool(true),
+		Name:    "Rebase dependencies",
+		Command: "git checkout master && git pull && git checkout dependencies && git rebase master && git push -f && git checkout master",
+	}
+
 	DefaultDockerConfig = &Config{
 		Language: "docker",
 		Install: &RunConfig{
@@ -154,6 +160,9 @@ var (
 		GitHubAction: &TemplateFileConfig{
 			Enabled:  makeBool(true),
 			Template: "!docker_action.tmpl",
+		},
+		Commands: map[string]*RunConfig{
+			"rebase-dep": rebaseDependencies,
 		},
 	}
 
@@ -186,6 +195,12 @@ var (
 			Template: "!go_dockerfile.tmpl",
 		},
 		Commands: map[string]*RunConfig{
+			"rebase-dep": rebaseDependencies,
+			"update-dep": {
+				Enabled: makeBool(true),
+				Name:    "Update dependencies",
+				Command: "git checkout master && git pull && go get -u ./... && go mod tidy && git add go.* && git commit -m 'chore(deps): upgraded dependencies' && git push && git checkout dependencies && git rebase master && git push -f && git checkout master",
+			},
 			"format-check": {
 				Enabled: makeBool(true),
 				Name:    "Check format",
@@ -268,6 +283,12 @@ var (
 			Template: "!node_npm_dockerfile.tmpl",
 		},
 		Commands: map[string]*RunConfig{
+			"rebase-dep": rebaseDependencies,
+			"update-dep": {
+				Enabled: makeBool(true),
+				Name:    "Update dependencies",
+				Command: "git checkout master && git pull && npm upgrade && git add package*.json && git commit -m 'chore(deps): upgraded dependencies' && git push && git checkout dependencies && git rebase master && git push -f && git checkout master",
+			},
 			"format": {
 				Enabled: makeBool(true),
 				Name:    "Format",
@@ -310,6 +331,12 @@ var (
 			Template: "!node_yarn_dockerfile.tmpl",
 		},
 		Commands: map[string]*RunConfig{
+			"rebase-dep": rebaseDependencies,
+			"update-dep": {
+				Enabled: makeBool(true),
+				Name:    "Update dependencies",
+				Command: "git checkout master && git pull && yarn upgrade && git add package.json yarn.lock && git commit -m 'chore(deps): upgraded dependencies' && git push && git checkout dependencies && git rebase master && git push -f && git checkout master",
+			},
 			"format": {
 				Enabled: makeBool(true),
 				Name:    "Format",
@@ -349,6 +376,9 @@ var (
 		Dockerfile: &TemplateFileConfig{
 			Template: "!java_mvn_dockerfile.tmpl",
 		},
+		Commands: map[string]*RunConfig{
+			"rebase-dep": rebaseDependencies,
+		},
 	}
 
 	DefaultScalaSbtConfig = &Config{
@@ -377,6 +407,9 @@ var (
 		Dockerfile: &TemplateFileConfig{
 			Template: "!scala_sbt_dockerfile.tmpl",
 		},
+		Commands: map[string]*RunConfig{
+			"rebase-dep": rebaseDependencies,
+		},
 	}
 
 	DefaultPythonConfig = &Config{
@@ -400,6 +433,14 @@ var (
 		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!python_dockerfile.tmpl",
+		},
+		Commands: map[string]*RunConfig{
+			"rebase-dep": rebaseDependencies,
+			"update-dep": {
+				Enabled: makeBool(true),
+				Name:    "Update dependencies",
+				Command: "git checkout master && git pull && pip install pipupgrade && pipupgrade --verbose --latest --yes && git add requirements.txt && git commit -m 'chore(deps): upgraded dependencies' && git push && git checkout dependencies && git rebase master && git push -f && git checkout master",
+			},
 		},
 	}
 )
@@ -538,6 +579,18 @@ func LoadConfig(ctx context.Context) (context.Context, error) {
 	}
 	if cfg.Test.Enabled == nil {
 		cfg.Test.Enabled = makeBool(true)
+	}
+
+	if cfg.GitHubAction == nil {
+		cfg.GitHubAction = defaultConfig.GitHubAction
+	} else {
+		if len(cfg.GitHubAction.Template) == 0 {
+			cfg.GitHubAction.Template = defaultConfig.GitHubAction.Template
+		}
+
+		if len(cfg.GitHubAction.File) == 0 {
+			cfg.GitHubAction.File = defaultConfig.GitHubAction.File
+		}
 	}
 
 	if cfg.Version == nil {
