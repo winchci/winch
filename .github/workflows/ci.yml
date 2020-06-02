@@ -9,10 +9,14 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        goos: [linux, darwin]
+        include:
+        - os: ubuntu-latest
+          goos: linux
+        - os: macos-latest
+          goos: darwin
     env:
       GO111MODULE: "on"
       CGO_ENABLED: "0"
