@@ -89,5 +89,5 @@ jobs:
     steps:
     - uses: actions/download-artifact@v1
       with:
-        name: winch-${{matrix.goos}}
+        name: winch-linux.zip
     - run: ./winch ci
