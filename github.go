@@ -137,7 +137,7 @@ func (g GitHub) UploadAsset(ctx context.Context, relID int64, artifact string) e
 
 			defer os.RemoveAll(dir)
 
-			artifact = path.Join(dir, "artifacts.tgz")
+			artifact = path.Join(dir, path.Base(artifact) + ".tgz")
 
 			err = archiver.Archive([]string{i.Name()}, artifact)
 			if err != nil {

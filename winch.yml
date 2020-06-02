@@ -12,6 +12,9 @@ version:
 release:
   branches:
     only: master
+  assets:
+    - ./bin/winch-darwin
+    - ./bin/winch-linux
 assets:
 - filename: templates/templates_gen.go
   directory: templates

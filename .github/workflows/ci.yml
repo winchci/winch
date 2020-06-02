@@ -66,6 +66,10 @@ jobs:
     - uses: actions/download-artifact@v1
       with:
         name: winch-linux
-        path: bin
-    - run: ls -l bin
-    - run: ./bin/winch ci
+        path: bin/winch-linux
+    - uses: actions/download-artifact@v1
+      with:
+        name: winch-darwin
+        path: bin/winch-darwin
+    - run: chmod +x bin/winch-linux/* bin/winch-darwin/*
+    - run: ./bin/winch-linux/winch ci
