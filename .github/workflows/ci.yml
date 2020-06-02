@@ -67,5 +67,5 @@ jobs:
       with:
         name: winch-linux
         path: bin
-    - run: ls -l
-    - run: ./winch ci
+    - run: ls -l bin
+    - run: ./bin/winch ci
