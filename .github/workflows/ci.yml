@@ -63,6 +63,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+    - uses: actions/setup-go@v2
+      with:
+        go-version: 1.14
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v1
+      with:
+        path: /home/runner/go/pkg/mod
+        key: v1-go-mod-${{ matrix.goos }}-${{ hashFiles('go.sum') }}
+        restore-keys: v1-go-mod-${{ matrix.goos }}
     - uses: actions/download-artifact@v1
       with:
         name: winch-linux
