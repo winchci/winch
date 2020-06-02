@@ -55,7 +55,7 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: winch-${{matrix.goos}}
-        path: bin/${{matrix.goos}}/*
+        path: bin/${{matrix.goos}}/
 
   release:
     name: Release
@@ -67,4 +67,4 @@ jobs:
       with:
         name: winch-linux
         path: bin
-    - run: ./bin/winch ci
+    - run: ./bin/linux/winch ci
