@@ -10,44 +10,79 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, darwin]
     env:
       GO111MODULE: "on"
       CGO_ENABLED: "0"
-      GOOS: "linux"
+      GOOS: ${{ matrix.goos }}
       GOPRIVATE: "github.com/winchci"
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
     steps:
-    - name: Install Go
-      uses: actions/setup-go@v2
+    - uses: actions/setup-go@v2
       with:
         go-version: 1.14
-
-    - name: Check out code
-      uses: actions/checkout@v2
-
-    - name: Cache Go modules
-      uses: actions/cache@v1
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v1
       with:
         path: /home/runner/go/pkg/mod
         key: v1-go-mod-${{ hashFiles('go.sum') }}
         restore-keys: v1-go-mod-
-
-    - name: Cache Go build
-      uses: actions/cache@v1
-      with:
-        path: /home/runner/.cache/go-build
-        key: v1-go-build-${{ hashFiles('go.sum') }}
-        restore-keys: v1-go-build-
-
     - name: Build winch
       run: |
-        mkdir -p bin
+        mkdir -p bin/${{matrix.goos}}
         go mod download
         go test ./...
-        go build -o bin/winch ./cmd/winch/main.go
+        go get -u \
+            github.com/kisielk/errcheck \
+            golang.org/x/tools/cmd/goimports \
+            golang.org/x/lint/golint \
+            github.com/securego/gosec/cmd/gosec \
+            golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow \
+            honnef.co/go/tools/cmd/staticcheck
+        go build -o bin/${{matrix.goos}}/winch ./cmd/winch/main.go
+        go build -o bin/${{matrix.goos}}/errcheck github.com/kisielk/errcheck
+        go build -o bin/${{matrix.goos}}/goimports golang.org/x/tools/cmd/goimports
+        go build -o bin/${{matrix.goos}}/golint golang.org/x/lint/golint
+        go build -o bin/${{matrix.goos}}/gosec github.com/securego/gosec/cmd/gosec
+        go build -o bin/${{matrix.goos}}/shadow golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
+        go build -o bin/${{matrix.goos}}/staticcheck honnef.co/go/tools/cmd/staticcheck
+    - uses: actions/upload-artifact@v1
+      with:
+        name: winch-${{matrix.goos}}
+        path: bin/${{matrix.goos}/winch
+    - uses: actions/upload-artifact@v1
+      with:
+        name: winch-${{matrix.goos}}
+        path: bin/${{matrix.goos}/errcheck
+    - uses: actions/upload-artifact@v1
+      with:
+        name: winch-${{matrix.goos}}
+        path: bin/${{matrix.goos}/goimports
+    - uses: actions/upload-artifact@v1
+      with:
+        name: winch-${{matrix.goos}}
+        path: bin/${{matrix.goos}/golint
+    - uses: actions/upload-artifact@v1
+      with:
+        name: winch-${{matrix.goos}}
+        path: bin/${{matrix.goos}/gosec
+    - uses: actions/upload-artifact@v1
+      with:
+        name: winch-${{matrix.goos}}
+        path: bin/${{matrix.goos}/shadow
+    - uses: actions/upload-artifact@v1
+      with:
+        name: winch-${{matrix.goos}}
+        path: bin/${{matrix.goos}/staticcheck
 
-    - name: Turn the handle
-      run: |
-        ./bin/winch ci
+  release:
+    name: Release
+    runs-on: build
+    needs: build
+    steps:
+    - uses: actions/download-artifact@v1
+      with:
+        name: winch-${{matrix.goos}}
+    - run: ./winch ci

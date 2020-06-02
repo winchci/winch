@@ -20,7 +20,9 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/joho/godotenv"
@@ -476,21 +478,27 @@ func AddConfigToContext(ctx context.Context, c *Config) context.Context {
 func LoadConfig(ctx context.Context) (context.Context, error) {
 	c := CommandFromContext(ctx)
 
+	filename := c.Flags().Lookup("file").Value.String()
+	for _, f := range strings.Split(filename, ":") {
+		f, err := filepath.Abs(f)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, err := os.Stat(f); err == nil {
+			filename = f
+		}
+	}
+
 	cfg := &Config{
-		Filename: c.Flags().Lookup("file").Value.String(),
+		Filename: filename,
+		BasePath: filepath.Dir(filename),
 		Language: "go",
 		Changelog: &TemplateFileConfig{
 			Template: "!changelog.tmpl",
 			File:     "CHANGELOG.md",
 		},
 	}
-
-	filename, err := filepath.Abs(cfg.Filename)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.BasePath = filepath.Dir(filename)
 
 	b, err := ioutil.ReadFile(cfg.Filename)
 	if err != nil {

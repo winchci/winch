@@ -31,6 +31,13 @@ func writeDockerfile(_ context.Context, cfg *config.Config, t *config.TemplateFi
 		return nil
 	}
 
+	if len(file) == 0 {
+		file = t.File
+	}
+	if len(file) == 0 {
+		file = "Dockerfile"
+	}
+
 	f, err := os.Create(filepath.Join(cfg.BasePath, file))
 	if err != nil {
 		return err
@@ -95,9 +102,6 @@ func generateDockerfile(ctx context.Context) error {
 
 	for _, dockerfile := range dockerfiles {
 		dockerfile.Enabled = proto.Bool(true)
-		if len(dockerfile.File) == 0 {
-			dockerfile.File = "Dockerfile"
-		}
 
 		err = writeDockerfile(ctx, cfg, dockerfile, version, output)
 		if err != nil {

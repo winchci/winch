@@ -1,0 +1,66 @@
+name: Static checks
+on: pull_request
+
+env:
+  GITHUB_TOKEN: {{ `${{ secrets.GH_TOKEN }}` }}
+
+jobs:
+  imports:
+    name: Imports
+    runs-on: ubuntu-latest
+    container: winchci/golang
+    steps:
+    - uses: actions/checkout@v2
+    - uses: winchci/golang@v1
+      with:
+        command: run imports
+
+  errcheck:
+    name: Errcheck
+    runs-on: ubuntu-latest
+    container: winchci/golang
+    steps:
+    - uses: actions/checkout@v2
+    - uses: winchci/golang@v1
+      with:
+        command: run errcheck
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    container: winchci/golang
+    steps:
+    - uses: actions/checkout@v2
+    - uses: winchci/golang@v1
+      with:
+        command: run lint
+
+  shadow:
+    name: Shadow
+    runs-on: ubuntu-latest
+    container: winchci/golang
+    steps:
+    - uses: actions/checkout@v2
+    - uses: winchci/golang@v1
+      with:
+        command: run shadow
+
+  staticcheck:
+    name: StaticCheck
+    runs-on: ubuntu-latest
+    container: winchci/golang
+    steps:
+    - uses: actions/checkout@v2
+    - uses: winchci/golang@v1
+      with:
+        command: run staticcheck
+
+  sec:
+    name: Sec
+    runs-on: ubuntu-latest
+    container: winchci/golang
+    steps:
+    - uses: actions/checkout@v2
+    - uses: winchci/golang@v1
+      with:
+        command: run gosec

@@ -30,6 +30,14 @@ func writeGithubAction(_ context.Context, cfg *config.Config, t *config.Template
 		return nil
 	}
 
+	if len(file) == 0 {
+		file = t.File
+	}
+
+	if len(file) == 0 {
+		file = ".github/workflows/ci.yml"
+	}
+
 	f, err := os.Create(filepath.Join(cfg.BasePath, file))
 	if err != nil {
 		return err
@@ -88,14 +96,6 @@ func generateGithubAction(ctx context.Context) error {
 	}
 
 	action := cfg.GitHubAction
-
-	if len(output) == 0 {
-		output = action.File
-	}
-
-	if len(output) == 0 {
-		output = ".github/workflows/ci.yml"
-	}
 
 	return writeGithubAction(ctx, cfg, action, version, output)
 }
