@@ -9,12 +9,12 @@ ENTRYPOINT ["/entrypoint.sh"]
 FROM golang:1.14-alpine AS golang
 RUN apk add --update --no-cache git openssh-client
 COPY bin/linux-amd64/winch /usr/local/bin/winch
-COPY bin/linux-amd64/errcheck /usr/local/bin/winch-go-errcheck
-COPY bin/linux-amd64/goimports /usr/local/bin/winch-go-imports
-COPY bin/linux-amd64/golint /usr/local/bin/winch-go-lint
-COPY bin/linux-amd64/gosec /usr/local/bin/winch-go-sec
-COPY bin/linux-amd64/shadow /usr/local/bin/winch-go-shadow
-COPY bin/linux-amd64/staticcheck /usr/local/bin/winch-go-staticcheck
+COPY bin/linux-amd64/winch-go-errcheck /usr/local/bin/winch-go-errcheck
+COPY bin/linux-amd64/winch-go-imports /usr/local/bin/winch-go-imports
+COPY bin/linux-amd64/winch-go-lint /usr/local/bin/winch-go-lint
+COPY bin/linux-amd64/winch-go-sec /usr/local/bin/winch-go-sec
+COPY bin/linux-amd64/winch-go-shadow /usr/local/bin/winch-go-shadow
+COPY bin/linux-amd64/winch-go-staticcheck /usr/local/bin/winch-go-staticcheck
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
