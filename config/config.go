@@ -86,6 +86,10 @@ func (c *TemplateFileConfig) IsEnabled() bool {
 	return c != nil && ((c.Enabled == nil && len(c.File) > 0) || (c.Enabled != nil && *c.Enabled))
 }
 
+func (c TemplateFileConfig) GetVariables() map[string]string {
+	return c.Variables
+}
+
 // Config provides overall configuration
 type Config struct {
 	Filename      string                       `json:"filename,omitempty" yaml:"filename,omitempty"`
@@ -113,6 +117,7 @@ type Config struct {
 	GitHubAction  *TemplateFileConfig          `json:"githubaction,omitempty" yaml:"githubaction,omitempty"`
 	Dockerfile    *TemplateFileConfig          `json:"dockerfile,omitempty" yaml:"dockerfile,omitempty"`
 	Dockerfiles   []*TemplateFileConfig        `json:"dockerfiles,omitempty" yaml:"dockerfiles,omitempty"`
+	Homebrew      *HomebrewConfig              `json:"homebrew,omitempty" yaml:"homebrew,omitempty"`
 	Transom       *TransomConfig               `json:"transom,omitempty" yaml:"transom,omitempty"`
 	Database      *DatabaseConfig              `json:"database,omitempty" yaml:"database,omitempty"`
 	Dynamodb      *DynamoDBConfig              `json:"dynamodb,omitempty" yaml:"dynamodb,omitempty"`
@@ -145,6 +150,11 @@ var (
 		Command: "git checkout master && git pull && git checkout dependencies && git rebase master && git push -f && git checkout master",
 	}
 
+	homebrew = &HomebrewConfig{
+		Template: "!brew.tmpl",
+		File:     "formula.rb",
+	}
+
 	DefaultDockerConfig = &Config{
 		Language: "docker",
 		Install: &RunConfig{
@@ -166,6 +176,7 @@ var (
 		Commands: map[string]*RunConfig{
 			"rebase-dep": rebaseDependencies,
 		},
+		Homebrew: homebrew,
 	}
 
 	DefaultGoConfig = &Config{
@@ -254,6 +265,7 @@ var (
 				Command: "winch-go-staticcheck ./...",
 			},
 		},
+		Homebrew: homebrew,
 	}
 
 	DefaultNpmConfig = &Config{
@@ -302,6 +314,7 @@ var (
 				Command: "npm run lint",
 			},
 		},
+		Homebrew: homebrew,
 	}
 
 	DefaultYarnConfig = &Config{
@@ -350,6 +363,7 @@ var (
 				Command: "npm lint",
 			},
 		},
+		Homebrew: homebrew,
 	}
 
 	DefaultJavaMavenConfig = &Config{
@@ -381,6 +395,7 @@ var (
 		Commands: map[string]*RunConfig{
 			"rebase-dep": rebaseDependencies,
 		},
+		Homebrew: homebrew,
 	}
 
 	DefaultScalaSbtConfig = &Config{
@@ -412,6 +427,7 @@ var (
 		Commands: map[string]*RunConfig{
 			"rebase-dep": rebaseDependencies,
 		},
+		Homebrew: homebrew,
 	}
 
 	DefaultPythonConfig = &Config{
@@ -444,6 +460,7 @@ var (
 				Command: "git checkout master && git pull && pip install pipupgrade && pipupgrade --verbose --latest --yes && git add requirements.txt && git commit -m 'chore(deps): upgraded dependencies' && git push && git checkout dependencies && git rebase master && git push -f && git checkout master",
 			},
 		},
+		Homebrew: homebrew,
 	}
 )
 
@@ -632,6 +649,26 @@ func LoadConfig(ctx context.Context) (context.Context, error) {
 	for k, v := range defaultConfig.Commands {
 		if _, ok := cfg.Commands[k]; !ok {
 			cfg.Commands[k] = v
+		}
+	}
+
+	if cfg.Homebrew == nil {
+		cfg.Homebrew = defaultConfig.Homebrew
+	} else {
+		if len(cfg.Homebrew.File) == 0 {
+			cfg.Homebrew.File = defaultConfig.Homebrew.File
+		}
+
+		if len(cfg.Homebrew.Template) == 0 {
+			cfg.Homebrew.Template = defaultConfig.Homebrew.Template
+		}
+
+		if len(cfg.Homebrew.Install) == 0 {
+			cfg.Homebrew.Install = fmt.Sprintf("bin.install \"%s\"", cfg.Name)
+		}
+
+		if len(cfg.Homebrew.Test) == 0 {
+			cfg.Homebrew.Test = fmt.Sprintf("system \"#{bin}/%s --version\"", cfg.Name)
 		}
 	}
 

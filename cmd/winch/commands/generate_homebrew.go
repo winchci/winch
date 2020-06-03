@@ -18,15 +18,20 @@ package commands
 
 import (
 	"context"
-	"github.com/golang/protobuf/proto"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/winchci/winch/config"
 	"github.com/winchci/winch/templates"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-func writeDockerfile(_ context.Context, cfg *config.Config, t *config.TemplateFileConfig, version string, file string) error {
+func writeHomebrew(ctx context.Context, cfg *config.Config, t *config.HomebrewConfig, version string, file string) error {
 	if !t.IsEnabled() {
 		return nil
 	}
@@ -34,8 +39,9 @@ func writeDockerfile(_ context.Context, cfg *config.Config, t *config.TemplateFi
 	if len(file) == 0 {
 		file = t.GetFile()
 	}
+
 	if len(file) == 0 {
-		file = "Dockerfile"
+		file = "formula.rb"
 	}
 
 	f, err := os.Create(filepath.Join(cfg.BasePath, file))
@@ -45,9 +51,9 @@ func writeDockerfile(_ context.Context, cfg *config.Config, t *config.TemplateFi
 
 	defer f.Close()
 
-	vars := t.GetVariables()
+	vars := t.Variables
 	if vars == nil {
-		vars = make(map[string]string)
+		vars = make(map[string]interface{})
 	}
 	if _, ok := vars["Name"]; !ok {
 		vars["Name"] = cfg.Name
@@ -55,12 +61,67 @@ func writeDockerfile(_ context.Context, cfg *config.Config, t *config.TemplateFi
 	if _, ok := vars["Description"]; !ok {
 		vars["Description"] = cfg.Description
 	}
+	if _, ok := vars["Repository"]; !ok {
+		vars["Repository"] = fmt.Sprintf("homebrew-%s", vars["Name"])
+	}
 	if _, ok := vars["Language"]; !ok {
 		vars["Language"] = cfg.Language
+	}
+	if _, ok := vars["Homepage"]; !ok {
+		vars["Homepage"] = cfg.Repository
 	}
 	if _, ok := vars["Version"]; !ok {
 		vars["Version"] = version
 	}
+	if _, ok := vars["Install"]; !ok {
+		vars["Install"] = t.Install
+	}
+	if _, ok := vars["Test"]; !ok {
+		vars["Test"] = t.Test
+	}
+	if _, ok := vars["DependsOn"]; !ok {
+		vars["DependsOn"] = t.DependsOn
+	}
+	if _, ok := vars["Asset"]; !ok {
+		vars["Asset"] = t.Asset
+	}
+	if _, ok := vars["Url"]; !ok {
+		vars["Url"] = t.Url
+	}
+	if _, ok := vars["Url"]; !ok {
+		vars["Url"] = fmt.Sprintf("%s/releases/download/v%s/%s", cfg.Repository, vars["Version"], vars["Asset"])
+	}
+
+	var data []byte
+	if strings.HasPrefix(vars["Url"].(string), "http") {
+		req, err := http.NewRequestWithContext(ctx, "GET", vars["Url"].(string), nil)
+		req.SetBasicAuth("sethyates", os.Getenv("GITHUB_TOKEN"))
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+
+		// Check server response
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("homebrew: bad status: %s", resp.Status)
+		}
+
+		data, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+	} else {
+		data, err = ioutil.ReadFile(vars["Url"].(string))
+		if err != nil {
+			return err
+		}
+	}
+
+	bytes := sha256.Sum256(data)
+	sha := hex.EncodeToString(bytes[:])
+	vars["Sha256"] = sha
 
 	err = templates.Load(cfg.BasePath, t.GetTemplate()).Execute(f, vars)
 	if err != nil {
@@ -70,7 +131,7 @@ func writeDockerfile(_ context.Context, cfg *config.Config, t *config.TemplateFi
 	return nil
 }
 
-func generateDockerfile(ctx context.Context) error {
+func generateHomebrew(ctx context.Context) error {
 	ctx, err := config.LoadConfig(ctx)
 	if err != nil {
 		return err
@@ -92,31 +153,14 @@ func generateDockerfile(ctx context.Context) error {
 		return err
 	}
 
-	dockerfiles := cfg.Dockerfiles
-	if dockerfiles == nil {
-		dockerfiles = make([]*config.TemplateFileConfig, 0)
-	}
-	if cfg.Dockerfile != nil {
-		dockerfiles = append(dockerfiles, cfg.Dockerfile)
-	}
-
-	for _, dockerfile := range dockerfiles {
-		dockerfile.Enabled = proto.Bool(true)
-
-		err = writeDockerfile(ctx, cfg, dockerfile, version, output)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return writeHomebrew(ctx, cfg, cfg.Homebrew, version, output)
 }
 
 func init() {
 	var cmd = &cobra.Command{
-		Use:   "dockerfile",
-		Short: "Generate a Dockerfile",
-		Run:   Runner(generateDockerfile),
+		Use:   "homebrew",
+		Short: "Generate a Homebrew formula",
+		Run:   Runner(generateHomebrew),
 		Args:  cobra.NoArgs,
 	}
 

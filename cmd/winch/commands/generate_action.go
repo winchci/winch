@@ -31,7 +31,7 @@ func writeGithubAction(_ context.Context, cfg *config.Config, t *config.Template
 	}
 
 	if len(file) == 0 {
-		file = t.File
+		file = t.GetFile()
 	}
 
 	if len(file) == 0 {
@@ -45,7 +45,7 @@ func writeGithubAction(_ context.Context, cfg *config.Config, t *config.Template
 
 	defer f.Close()
 
-	vars := t.Variables
+	vars := t.GetVariables()
 	if vars == nil {
 		vars = make(map[string]string)
 	}
@@ -65,7 +65,7 @@ func writeGithubAction(_ context.Context, cfg *config.Config, t *config.Template
 		vars["Version"] = version
 	}
 
-	err = templates.Load(cfg.BasePath, t.Template).Execute(f, vars)
+	err = templates.Load(cfg.BasePath, t.GetTemplate()).Execute(f, vars)
 	if err != nil {
 		return err
 	}
@@ -95,9 +95,7 @@ func generateGithubAction(ctx context.Context) error {
 		return err
 	}
 
-	action := cfg.GitHubAction
-
-	return writeGithubAction(ctx, cfg, action, version, output)
+	return writeGithubAction(ctx, cfg, cfg.GitHubAction, version, output)
 }
 
 func init() {

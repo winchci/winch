@@ -1,0 +1,17 @@
+class {{camel .Name}} < Formula
+  desc "{{.Description}}"
+  homepage "{{.Homepage}}"
+  version "{{.Version}}"
+  bottle :unneeded
+
+  url "{{.Url}}"
+  sha256 "{{.Sha256}}"
+
+  def install
+    {{.Install}}
+  end
+
+  test do
+    {{.Test}}
+  end
+end

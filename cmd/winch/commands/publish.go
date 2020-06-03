@@ -82,6 +82,13 @@ func publish2(ctx context.Context, cfg *config.Config) error {
 		}
 	}
 
+	if cfg.Homebrew.IsEnabled() {
+		err = writeHomebrew(ctx, cfg, cfg.Homebrew, version, cfg.Homebrew.File)
+		if err != nil {
+			return err
+		}
+	}
+
 	if cfg.Dockerfile.IsEnabled() {
 		err = writeDockerfile(ctx, cfg, cfg.Dockerfile, version, cfg.Dockerfile.File)
 		if err != nil {
