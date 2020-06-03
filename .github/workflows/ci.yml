@@ -67,4 +67,4 @@ jobs:
         go build -o bin/$GOOS-$GOARCH/winch-go-shadow golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
         go build -o bin/$GOOS-$GOARCH/winch-go-staticcheck honnef.co/go/tools/cmd/staticcheck
 
-    - run: ./bin/linux/winch ci
+    - run: ./bin/linux-amd64/winch ci
