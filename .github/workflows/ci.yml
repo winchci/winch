@@ -9,7 +9,6 @@ on:
 env:
   GO111MODULE: "on"
   CGO_ENABLED: "0"
-  GOARCH: "amd64"
   GOPRIVATE: "github.com/winchci"
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -36,35 +35,6 @@ jobs:
       run: |
         go mod download
         go test ./...
+        go build -o ./winch ./cmd/winch/main.go
 
-        go get -u \
-            github.com/kisielk/errcheck \
-            golang.org/x/tools/cmd/goimports \
-            golang.org/x/lint/golint \
-            github.com/securego/gosec/cmd/gosec \
-            golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow \
-            honnef.co/go/tools/cmd/staticcheck
-
-        export GOOS=linux
-        mkdir -p bin/$GOOS-$GOARCH
-
-        go build -o bin/$GOOS-$GOARCH/winch ./cmd/winch/main.go
-        go build -o bin/$GOOS-$GOARCH/winch-go-errcheck github.com/kisielk/errcheck
-        go build -o bin/$GOOS-$GOARCH/winch-go-imports golang.org/x/tools/cmd/goimports
-        go build -o bin/$GOOS-$GOARCH/winch-go-lint golang.org/x/lint/golint
-        go build -o bin/$GOOS-$GOARCH/winch-go-sec github.com/securego/gosec/cmd/gosec
-        go build -o bin/$GOOS-$GOARCH/winch-go-shadow golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
-        go build -o bin/$GOOS-$GOARCH/winch-go-staticcheck honnef.co/go/tools/cmd/staticcheck
-
-        export GOOS=darwin
-        mkdir -p bin/$GOOS-$GOARCH
-
-        go build -o bin/$GOOS-$GOARCH/winch ./cmd/winch/main.go
-        go build -o bin/$GOOS-$GOARCH/winch-go-errcheck github.com/kisielk/errcheck
-        go build -o bin/$GOOS-$GOARCH/winch-go-imports golang.org/x/tools/cmd/goimports
-        go build -o bin/$GOOS-$GOARCH/winch-go-lint golang.org/x/lint/golint
-        go build -o bin/$GOOS-$GOARCH/winch-go-sec github.com/securego/gosec/cmd/gosec
-        go build -o bin/$GOOS-$GOARCH/winch-go-shadow golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
-        go build -o bin/$GOOS-$GOARCH/winch-go-staticcheck honnef.co/go/tools/cmd/staticcheck
-
-    - run: ./bin/linux-amd64/winch ci
+    - run: ./winch ci

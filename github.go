@@ -130,6 +130,8 @@ func (g GitHub) CreateRelease(ctx context.Context, tag string, body string) (*gi
 func (g GitHub) UploadAsset(ctx context.Context, relID int64, artifact string) error {
 	if i, err := os.Stat(artifact); err == nil {
 		if i.IsDir() {
+			fmt.Printf("+ %s (dir)\n", artifact)
+
 			dir, err := ioutil.TempDir("", version.Name)
 			if err != nil {
 				return err
@@ -143,6 +145,8 @@ func (g GitHub) UploadAsset(ctx context.Context, relID int64, artifact string) e
 			if err != nil {
 				return err
 			}
+		} else {
+			fmt.Printf("+ %s\n", artifact)
 		}
 
 		file, err := os.Open(artifact)
@@ -157,6 +161,8 @@ func (g GitHub) UploadAsset(ctx context.Context, relID int64, artifact string) e
 		if err != nil {
 			return err
 		}
+	} else {
+		fmt.Printf("- %s - not found\n", artifact)
 	}
 
 	return nil
