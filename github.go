@@ -128,9 +128,21 @@ func (g GitHub) CreateRelease(ctx context.Context, tag string, body string) (*gi
 }
 
 func (g GitHub) UploadAsset(ctx context.Context, relID int64, artifact string) error {
+	parts := strings.Split(artifact, "=")
+	artifact = parts[0]
+	var alias string
+	if len(parts) > 1 {
+		alias = parts[1]
+	} else {
+		alias = parts[0]
+	}
+
 	if i, err := os.Stat(artifact); err == nil {
+		var file *os.File
+		var err error
+
 		if i.IsDir() {
-			fmt.Printf("+ %s (dir)\n", artifact)
+			fmt.Printf("+ %s (dir) = %s\n", artifact, alias)
 			source := artifact
 
 			dir, err := ioutil.TempDir("", version.Name)
@@ -141,23 +153,23 @@ func (g GitHub) UploadAsset(ctx context.Context, relID int64, artifact string) e
 			defer os.RemoveAll(dir)
 
 			artifact = path.Join(dir, path.Base(artifact) + ".tgz")
-			fmt.Printf("\\-> %s\n", artifact)
+			alias = path.Base(artifact)
 
 			err = archiver.Archive([]string{source}, artifact)
 			if err != nil {
 				return err
 			}
 		} else {
-			fmt.Printf("+ %s\n", artifact)
+			fmt.Printf("+ %s = %s\n", artifact, alias)
 		}
 
-		file, err := os.Open(artifact)
+		file, err = os.Open(artifact)
 		if err != nil {
 			return err
 		}
 
 		_, _, err = g.client.Repositories.UploadReleaseAsset(ctx, g.owner, g.repo, relID, &github.UploadOptions{
-			Name:      artifact,
+			Name:      alias,
 			MediaType: mime.TypeByExtension(artifact),
 		}, file)
 		if err != nil {
