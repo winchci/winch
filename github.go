@@ -131,6 +131,7 @@ func (g GitHub) UploadAsset(ctx context.Context, relID int64, artifact string) e
 	if i, err := os.Stat(artifact); err == nil {
 		if i.IsDir() {
 			fmt.Printf("+ %s (dir)\n", artifact)
+			source := artifact
 
 			dir, err := ioutil.TempDir("", version.Name)
 			if err != nil {
@@ -140,8 +141,9 @@ func (g GitHub) UploadAsset(ctx context.Context, relID int64, artifact string) e
 			defer os.RemoveAll(dir)
 
 			artifact = path.Join(dir, path.Base(artifact) + ".tgz")
+			fmt.Printf("\\-> %s\n", artifact)
 
-			err = archiver.Archive([]string{i.Name()}, artifact)
+			err = archiver.Archive([]string{source}, artifact)
 			if err != nil {
 				return err
 			}
