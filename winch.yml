@@ -4,8 +4,8 @@ repository: https://github.com/winchci/winch
 verbose: true
 build:
   command: |
-    mkdir -p bin/linux
-    go build -o ./bin/linux/winch ./cmd/winch/main.go
+    mkdir -p bin/$GOOS-$GOARCH
+    go build -o ./bin/$GOOS-$GOARCH/winch ./cmd/winch/main.go
 version:
   file: version/version_gen.go
   template: version/winch_version.tmpl
@@ -13,8 +13,8 @@ release:
   branches:
     only: master
   assets:
-    - ./bin/winch-darwin
-    - ./bin/winch-linux
+    - ./bin/darwin-amd64/
+    - ./bin/linux-amd64/
 assets:
 - filename: templates/templates_gen.go
   directory: templates
@@ -81,3 +81,5 @@ dockers:
 environment:
   GO111MODULE: on
   CGO_ENABLED: 0
+  GOOS: linux
+  GOARCH: amd64

@@ -1,5 +1,7 @@
 # winch
 
+![Build](https://github.com/winchci/winch/workflows/Build/badge.svg)
+
 Winch is a universal build and release tool.
 
 ## Configuration File
