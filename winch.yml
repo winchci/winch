@@ -39,7 +39,7 @@ version:
 release:
   branches:
     only: master
-  assets:
+  artifacts:
     - ./bin/darwin-amd64/
     - ./bin/linux-amd64/
 assets:
