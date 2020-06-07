@@ -144,12 +144,6 @@ func makeBool(b bool) *bool {
 
 // Default configurations
 var (
-	rebaseDependencies = &RunConfig{
-		Enabled: makeBool(true),
-		Name:    "Rebase dependencies",
-		Command: "git checkout master && git pull && git checkout dependencies && git rebase master && git push -f && git checkout master",
-	}
-
 	homebrew = &HomebrewConfig{
 		Template: "!brew.tmpl",
 		File:     "formula.rb",
@@ -173,9 +167,7 @@ var (
 			Enabled:  makeBool(true),
 			Template: "!docker_action.tmpl",
 		},
-		Commands: map[string]*RunConfig{
-			"rebase-dep": rebaseDependencies,
-		},
+		Commands: map[string]*RunConfig{},
 		Homebrew: homebrew,
 	}
 
@@ -208,11 +200,10 @@ var (
 			Template: "!go_dockerfile.tmpl",
 		},
 		Commands: map[string]*RunConfig{
-			"rebase-dep": rebaseDependencies,
 			"update-dep": {
 				Enabled: makeBool(true),
 				Name:    "Update dependencies",
-				Command: "git checkout master && git pull && go get -u ./... && go mod tidy && git add go.* && git commit -m 'chore(deps): upgraded dependencies' && git push && git checkout dependencies && git rebase master && git push -f && git checkout master",
+				Command: "git checkout master && git pull && go get -u ./... && go mod tidy && git add go.* && git commit -m 'chore(deps): upgraded dependencies' && git push",
 			},
 			"format-check": {
 				Enabled: makeBool(true),
@@ -242,7 +233,7 @@ var (
 			"imports": {
 				Enabled: makeBool(true),
 				Name:    "Import check",
-				Command: "winch-go-imports -d -e . && goimports -l .",
+				Command: "winch-go-imports -d -e . && winch-go-imports -l .",
 			},
 			"lint": {
 				Enabled: makeBool(true),
@@ -297,11 +288,10 @@ var (
 			Template: "!node_npm_dockerfile.tmpl",
 		},
 		Commands: map[string]*RunConfig{
-			"rebase-dep": rebaseDependencies,
 			"update-dep": {
 				Enabled: makeBool(true),
 				Name:    "Update dependencies",
-				Command: "git checkout master && git pull && npm upgrade && git add package*.json && git commit -m 'chore(deps): upgraded dependencies' && git push && git checkout dependencies && git rebase master && git push -f && git checkout master",
+				Command: "git checkout master && git pull && npm upgrade && git add package*.json && git commit -m 'chore(deps): upgraded dependencies' && git push",
 			},
 			"format": {
 				Enabled: makeBool(true),
@@ -346,11 +336,10 @@ var (
 			Template: "!node_yarn_dockerfile.tmpl",
 		},
 		Commands: map[string]*RunConfig{
-			"rebase-dep": rebaseDependencies,
 			"update-dep": {
 				Enabled: makeBool(true),
 				Name:    "Update dependencies",
-				Command: "git checkout master && git pull && yarn upgrade && git add package.json yarn.lock && git commit -m 'chore(deps): upgraded dependencies' && git push && git checkout dependencies && git rebase master && git push -f && git checkout master",
+				Command: "git checkout master && git pull && yarn upgrade && git add package.json yarn.lock && git commit -m 'chore(deps): upgraded dependencies' && git push",
 			},
 			"format": {
 				Enabled: makeBool(true),
@@ -392,9 +381,7 @@ var (
 		Dockerfile: &TemplateFileConfig{
 			Template: "!java_mvn_dockerfile.tmpl",
 		},
-		Commands: map[string]*RunConfig{
-			"rebase-dep": rebaseDependencies,
-		},
+		Commands: map[string]*RunConfig{},
 		Homebrew: homebrew,
 	}
 
@@ -424,9 +411,7 @@ var (
 		Dockerfile: &TemplateFileConfig{
 			Template: "!scala_sbt_dockerfile.tmpl",
 		},
-		Commands: map[string]*RunConfig{
-			"rebase-dep": rebaseDependencies,
-		},
+		Commands: map[string]*RunConfig{},
 		Homebrew: homebrew,
 	}
 
@@ -453,11 +438,10 @@ var (
 			Template: "!python_dockerfile.tmpl",
 		},
 		Commands: map[string]*RunConfig{
-			"rebase-dep": rebaseDependencies,
 			"update-dep": {
 				Enabled: makeBool(true),
 				Name:    "Update dependencies",
-				Command: "git checkout master && git pull && pip install pipupgrade && pipupgrade --verbose --latest --yes && git add requirements.txt && git commit -m 'chore(deps): upgraded dependencies' && git push && git checkout dependencies && git rebase master && git push -f && git checkout master",
+				Command: "git checkout master && git pull && pip install pipupgrade && pipupgrade --verbose --latest --yes && git add requirements.txt && git commit -m 'chore(deps): upgraded dependencies' && git push",
 			},
 		},
 		Homebrew: homebrew,
