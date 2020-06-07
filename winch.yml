@@ -58,6 +58,8 @@ homebrew:
     system "#{bin}/winch --version"
   depends_on:
     - go
+  branches:
+    only: master
 assets:
 - filename: templates/templates_gen.go
   directory: templates

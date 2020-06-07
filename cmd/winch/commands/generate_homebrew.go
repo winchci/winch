@@ -94,6 +94,8 @@ func writeHomebrew(ctx context.Context, cfg *config.Config, t *config.HomebrewCo
 
 	var data []byte
 	if strings.HasPrefix(vars["Url"].(string), "http") {
+		fmt.Printf("homebrew: downloading '%s'", vars["Url"].(string))
+
 		req, err := http.NewRequestWithContext(ctx, "GET", vars["Url"].(string), nil)
 		req.SetBasicAuth("sethyates", os.Getenv("GITHUB_TOKEN"))
 
@@ -113,6 +115,7 @@ func writeHomebrew(ctx context.Context, cfg *config.Config, t *config.HomebrewCo
 			return err
 		}
 	} else {
+		fmt.Printf("homebrew: opening file '%s'", vars["Url"].(string))
 		data, err = ioutil.ReadFile(vars["Url"].(string))
 		if err != nil {
 			return err
