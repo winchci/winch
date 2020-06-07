@@ -46,7 +46,6 @@ homebrew:
   enabled: true
   organization: winchci
   asset: darwin-amd64.tgz
-  url: /Users/seth/Downloads/darwin-amd64.tgz
   install: |
     bin.install "winch"
     bin.install "winch-go-errcheck"
