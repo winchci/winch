@@ -39,7 +39,12 @@ func dockerBuild(ctx context.Context) error {
 
 	version, _ := getVersionFromReleases(releases)
 
-	for _, dockerConfig := range append(cfg.Dockers, cfg.Docker) {
+	dockers := cfg.Dockers
+	if cfg.Docker != nil {
+		dockers = append(dockers, cfg.Docker)
+	}
+
+	for _, dockerConfig := range dockers {
 		d, err := docker.NewDocker(dockerConfig, cfg.Name)
 		if err != nil {
 			return err
