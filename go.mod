@@ -50,6 +50,7 @@ require (
 	google.golang.org/protobuf v1.24.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.2.8
+	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 )

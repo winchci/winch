@@ -102,12 +102,12 @@ func generateAssets(ctx context.Context) error {
 }
 
 func init() {
-	var cmd = &cobra.Command{
+	var cmd2 = &cobra.Command{
 		Use:   "assets",
 		Short: "Generate assets",
 		Run:   Runner(generateAssets),
 		Args:  cobra.NoArgs,
 	}
 
-	generateCmd.AddCommand(cmd)
+	generateCmd.AddCommand(cmd2)
 }

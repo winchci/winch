@@ -1,0 +1,8 @@
+name: Generate assets using vfsgen
+author: Winch
+description: Generates assets using vfsgen
+runs:
+  using: "docker"
+  image: "TODO"
+  args:
+    - TODO

@@ -14,39 +14,10 @@ You should have received a copy of the GNU General Public License along with thi
 see <https://www.gnu.org/licenses/>.
 */
 
-package commands
+package main
 
-import (
-	"context"
-	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/winchci/winch"
-	"github.com/winchci/winch/config"
-)
+import "github.com/winchci/winch/v2/cmd/winch/commands"
 
-func run(ctx context.Context, args []string) error {
-	ctx, err := config.LoadConfig(ctx)
-	if err != nil {
-		return err
-	}
-
-	cfg := config.ConfigFromContext(ctx)
-
-	cmd2 := cfg.Commands[args[0]]
-	if cmd2 == nil {
-		return fmt.Errorf("command '%s' not found", args[0])
-	}
-
-	return winch.Run(ctx, cmd2, cfg)
-}
-
-func init() {
-	var cmd2 = &cobra.Command{
-		Use:   "run COMMAND",
-		Short: "Run a command",
-		Run:   RunnerWithArgs(run),
-		Args:  cobra.ExactArgs(1),
-	}
-
-	rootCmd.AddCommand(cmd2)
+func main() {
+	commands.Execute()
 }

@@ -151,7 +151,7 @@ func (g GitHub) UploadAsset(ctx context.Context, relID int64, artifact string) e
 
 			defer os.RemoveAll(dir)
 
-			artifact = path.Join(dir, path.Base(artifact) + ".tgz")
+			artifact = path.Join(dir, path.Base(artifact)+".tgz")
 			alias = path.Base(artifact)
 
 			fmt.Printf("+ %s (dir) = %s\n", artifact, alias)

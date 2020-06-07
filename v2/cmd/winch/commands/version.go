@@ -20,41 +20,22 @@ import (
 	"context"
 	"fmt"
 	"github.com/spf13/cobra"
-	"github.com/winchci/winch/changelog"
-	"github.com/winchci/winch/config"
+	"github.com/winchci/winch/v2/version"
 )
 
-func showVersion(ctx context.Context) error {
-	ctx, err := config.LoadConfig(ctx)
-	if err != nil {
-		return err
-	}
-
-	cfg := config.ConfigFromContext(ctx)
-
-	releases, err := changelog.MakeReleases(ctx, cfg)
-	if err != nil {
-		return err
-	}
-
-	version, prerelease := changelog.GetVersionFromReleases(releases)
-
-	if len(prerelease) > 0 {
-		fmt.Printf("%s-%s\n", version, prerelease)
-	} else {
-		fmt.Println(version)
-	}
+func showVersion(ctx context.Context, c *cobra.Command, args []string) error {
+	fmt.Println(version.Name, version.String())
 
 	return nil
 }
 
 func init() {
-	var cmd2 = &cobra.Command{
+	var cmd = &cobra.Command{
 		Use:   "version",
 		Short: "Show the version",
-		Run:   Runner(showVersion),
+		Run:   runner(showVersion),
 		Args:  cobra.NoArgs,
 	}
 
-	rootCmd.AddCommand(cmd2)
+	rootCmd.AddCommand(cmd)
 }

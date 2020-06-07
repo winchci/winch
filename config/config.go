@@ -19,6 +19,7 @@ package config
 import (
 	"context"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -27,7 +28,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 // FilterConfig provides config for filters
@@ -92,50 +92,47 @@ func (c TemplateFileConfig) GetVariables() map[string]string {
 
 // Config provides overall configuration
 type Config struct {
-	Filename      string                       `json:"filename,omitempty" yaml:"filename,omitempty"`
-	BasePath      string                       `json:"base,omitempty" yaml:"base,omitempty"`
-	Name          string                       `json:"name,omitempty" yaml:"name,omitempty"`
-	Description   string                       `json:"description,omitempty" yaml:"description,omitempty"`
-	Repository    string                       `json:"repository,omitempty" yaml:"repository,omitempty"`
-	Local         bool                         `json:"local,omitempty" yaml:"local,omitempty"`
-	Verbose       bool                         `json:"verbose,omitempty" yaml:"verbose,omitempty"`
-	Quiet         bool                         `json:"quiet,omitempty" yaml:"quiet,omitempty"`
-	Language      string                       `json:"language,omitempty" yaml:"language,omitempty"`
-	Toolchain     string                       `json:"toolchain,omitempty" yaml:"toolchain,omitempty"`
-	CI            *CIConfig                    `json:"ci,omitempty" yaml:"ci,omitempty"`
-	BeforeInstall *RunConfig                   `json:"before_install,omitempty" yaml:"before_install,omitempty"`
-	Install       *RunConfig                   `json:"install,omitempty" yaml:"install,omitempty"`
-	AfterInstall  *RunConfig                   `json:"after_install,omitempty" yaml:"after_install,omitempty"`
-	BeforeBuild   *RunConfig                   `json:"before_build,omitempty" yaml:"before_build,omitempty"`
-	Build         *RunConfig                   `json:"build,omitempty" yaml:"build,omitempty"`
-	AfterBuild    *RunConfig                   `json:"after_build,omitempty" yaml:"after_build,omitempty"`
-	BeforeTest    *RunConfig                   `json:"before_test,omitempty" yaml:"before_test,omitempty"`
-	Test          *RunConfig                   `json:"test,omitempty" yaml:"test,omitempty"`
-	AfterTest     *RunConfig                   `json:"after_test,omitempty" yaml:"after_test,omitempty"`
-	Changelog     *TemplateFileConfig          `json:"changelog,omitempty" yaml:"changelog,omitempty"`
-	Version       *TemplateFileConfig          `json:"version,omitempty" yaml:"version,omitempty"`
-	GitHubAction  *TemplateFileConfig          `json:"githubaction,omitempty" yaml:"githubaction,omitempty"`
-	Dockerfile    *TemplateFileConfig          `json:"dockerfile,omitempty" yaml:"dockerfile,omitempty"`
-	Dockerfiles   []*TemplateFileConfig        `json:"dockerfiles,omitempty" yaml:"dockerfiles,omitempty"`
-	Homebrew      *HomebrewConfig              `json:"homebrew,omitempty" yaml:"homebrew,omitempty"`
-	Transom       *TransomConfig               `json:"transom,omitempty" yaml:"transom,omitempty"`
-	Database      *DatabaseConfig              `json:"database,omitempty" yaml:"database,omitempty"`
-	Dynamodb      *DynamoDBConfig              `json:"dynamodb,omitempty" yaml:"dynamodb,omitempty"`
-	Vault         *VaultConfig                 `json:"vault,omitempty" yaml:"vault,omitempty"`
-	Docker        *DockerConfig                `json:"docker,omitempty" yaml:"docker,omitempty"`
-	Dockers       []*DockerConfig              `json:"dockers,omitempty" yaml:"dockers,omitempty"`
-	Assets        []*AssetConfig               `json:"assets,omitempty" yaml:"assets,omitempty"`
-	BeforeRelease *RunConfig                   `json:"before_release,omitempty" yaml:"before_release,omitempty"`
-	Release       *ReleaseConfig               `json:"release,omitempty" yaml:"release,omitempty"`
-	AfterRelease  *RunConfig                   `json:"after_release,omitempty" yaml:"after_release,omitempty"`
-	BeforePublish *RunConfig                   `json:"before_publish,omitempty" yaml:"before_publish,omitempty"`
-	Publish       *RunConfig                   `json:"publish,omitempty" yaml:"publish,omitempty"`
-	AfterPublish  *RunConfig                   `json:"after_publish,omitempty" yaml:"after_publish,omitempty"`
-	Environment   map[string]string            `json:"environment,omitempty" yaml:"environment,omitempty"`
-	Environments  map[string]map[string]string `json:"environments,omitempty" yaml:"environments,omitempty"`
-	Commands      map[string]*RunConfig        `json:"commands,omitempty" yaml:"commands,omitempty"`
-	Scopes        []string                     `json:"scopes,omitempty" yaml:"scopes,omitempty"`
-	Artifacts     []string                     `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
+	Filename      string                `json:"filename,omitempty" yaml:"filename,omitempty"`
+	BasePath      string                `json:"base,omitempty" yaml:"base,omitempty"`
+	Name          string                `json:"name,omitempty" yaml:"name,omitempty"`
+	Description   string                `json:"description,omitempty" yaml:"description,omitempty"`
+	Repository    string                `json:"repository,omitempty" yaml:"repository,omitempty"`
+	Local         bool                  `json:"local,omitempty" yaml:"local,omitempty"`
+	Verbose       bool                  `json:"verbose,omitempty" yaml:"verbose,omitempty"`
+	Quiet         bool                  `json:"quiet,omitempty" yaml:"quiet,omitempty"`
+	Language      string                `json:"language,omitempty" yaml:"language,omitempty"`
+	Toolchain     string                `json:"toolchain,omitempty" yaml:"toolchain,omitempty"`
+	CI            *CIConfig             `json:"ci,omitempty" yaml:"ci,omitempty"`
+	BeforeInstall *RunConfig            `json:"before_install,omitempty" yaml:"before_install,omitempty"`
+	Install       *RunConfig            `json:"install,omitempty" yaml:"install,omitempty"`
+	AfterInstall  *RunConfig            `json:"after_install,omitempty" yaml:"after_install,omitempty"`
+	BeforeBuild   *RunConfig            `json:"before_build,omitempty" yaml:"before_build,omitempty"`
+	Build         *RunConfig            `json:"build,omitempty" yaml:"build,omitempty"`
+	AfterBuild    *RunConfig            `json:"after_build,omitempty" yaml:"after_build,omitempty"`
+	BeforeTest    *RunConfig            `json:"before_test,omitempty" yaml:"before_test,omitempty"`
+	Test          *RunConfig            `json:"test,omitempty" yaml:"test,omitempty"`
+	AfterTest     *RunConfig            `json:"after_test,omitempty" yaml:"after_test,omitempty"`
+	Changelog     *TemplateFileConfig   `json:"changelog,omitempty" yaml:"changelog,omitempty"`
+	Version       *TemplateFileConfig   `json:"version,omitempty" yaml:"version,omitempty"`
+	GitHubAction  *TemplateFileConfig   `json:"githubaction,omitempty" yaml:"githubaction,omitempty"`
+	Dockerfile    *TemplateFileConfig   `json:"dockerfile,omitempty" yaml:"dockerfile,omitempty"`
+	Dockerfiles   []*TemplateFileConfig `json:"dockerfiles,omitempty" yaml:"dockerfiles,omitempty"`
+	Homebrew      *HomebrewConfig       `json:"homebrew,omitempty" yaml:"homebrew,omitempty"`
+	Transom       *TransomConfig        `json:"transom,omitempty" yaml:"transom,omitempty"`
+	Database      *DatabaseConfig       `json:"database,omitempty" yaml:"database,omitempty"`
+	Dynamodb      *DynamoDBConfig       `json:"dynamodb,omitempty" yaml:"dynamodb,omitempty"`
+	Vault         *VaultConfig          `json:"vault,omitempty" yaml:"vault,omitempty"`
+	Docker        *DockerConfig         `json:"docker,omitempty" yaml:"docker,omitempty"`
+	Dockers       []*DockerConfig       `json:"dockers,omitempty" yaml:"dockers,omitempty"`
+	Assets        []*AssetConfig        `json:"assets,omitempty" yaml:"assets,omitempty"`
+	BeforeRelease *RunConfig            `json:"before_release,omitempty" yaml:"before_release,omitempty"`
+	Release       *ReleaseConfig        `json:"release,omitempty" yaml:"release,omitempty"`
+	AfterRelease  *RunConfig            `json:"after_release,omitempty" yaml:"after_release,omitempty"`
+	BeforePublish *RunConfig            `json:"before_publish,omitempty" yaml:"before_publish,omitempty"`
+	Publish       *RunConfig            `json:"publish,omitempty" yaml:"publish,omitempty"`
+	AfterPublish  *RunConfig            `json:"after_publish,omitempty" yaml:"after_publish,omitempty"`
+	Environment   map[string]string     `json:"environment,omitempty" yaml:"environment,omitempty"`
+	Commands      map[string]*RunConfig `json:"commands,omitempty" yaml:"commands,omitempty"`
 }
 
 func makeBool(b bool) *bool {

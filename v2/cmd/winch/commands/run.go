@@ -19,45 +19,37 @@ package commands
 import (
 	"context"
 	"github.com/spf13/cobra"
-	"github.com/winchci/winch/changelog"
-	"github.com/winchci/winch/config"
-	"github.com/winchci/winch/homebrew"
+	"github.com/winchci/winch/v2/project"
 )
 
-func generateHomebrew(ctx context.Context) error {
-	ctx, err := config.LoadConfig(ctx)
+func run(ctx context.Context, c *cobra.Command, args []string) error {
+	file, err := c.Flags().GetString("file")
 	if err != nil {
 		return err
 	}
 
-	cfg := config.ConfigFromContext(ctx)
-
-	cmd2 := config.CommandFromContext(ctx)
-
-	releases, err := changelog.MakeReleases(ctx, cfg)
+	p, err := project.LoadProject(ctx, file)
 	if err != nil {
 		return err
 	}
 
-	version, _ := changelog.GetVersionFromReleases(releases)
+	pm := project.NewManager()
 
-	output, err := cmd2.Flags().GetString("output")
+	err = pm.ExecuteJob(ctx, p, args[0])
 	if err != nil {
 		return err
 	}
 
-	return homebrew.WriteHomebrew(ctx, cfg, cfg.Homebrew, version, output)
+	return nil
 }
 
 func init() {
-	var cmd2 = &cobra.Command{
-		Use:   "homebrew",
-		Short: "Generate a Homebrew formula",
-		Run:   Runner(generateHomebrew),
-		Args:  cobra.NoArgs,
+	var cmd = &cobra.Command{
+		Use:   "run",
+		Short: "Run a job",
+		Run:   runner(run),
+		Args:  cobra.ExactArgs(1),
 	}
 
-	cmd2.Flags().StringP("output", "o", "", "output file")
-
-	generateCmd.AddCommand(cmd2)
+	rootCmd.AddCommand(cmd)
 }

@@ -19,36 +19,13 @@ package commands
 import (
 	"context"
 	"github.com/spf13/cobra"
-	"github.com/winchci/winch"
-	"github.com/winchci/winch/changelog"
 	"github.com/winchci/winch/config"
-	"github.com/winchci/winch/templates"
-	"os"
-	"path/filepath"
+	config2 "github.com/winchci/winch/v2/actions"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 )
 
-func writeChangelog(ctx context.Context, cfg *config.Config, rel []*winch.Release) error {
-	cl, err := winch.MakeChangelog(ctx, cfg.Repository, rel)
-	if err != nil {
-		return err
-	}
-
-	f, err := os.Create(filepath.Join(cfg.BasePath, cfg.Changelog.File))
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-
-	err = templates.Load(cfg.BasePath, cfg.Changelog.Template).Execute(f, cl)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func generateChangelog(ctx context.Context) error {
+func upgrade(ctx context.Context) error {
 	ctx, err := config.LoadConfig(ctx)
 	if err != nil {
 		return err
@@ -56,34 +33,38 @@ func generateChangelog(ctx context.Context) error {
 
 	cfg := config.ConfigFromContext(ctx)
 
+	cfg2, err := config2.Upgrade(cfg)
+	if err != nil {
+		return err
+	}
+
+	b, err := yaml.Marshal(cfg2)
+	if err != nil {
+		return err
+	}
+
 	cmd2 := config.CommandFromContext(ctx)
 
-	releases, err := changelog.MakeReleases(ctx, cfg)
+	output, err := cmd2.Flags().GetString("file")
 	if err != nil {
 		return err
 	}
 
-	output, err := cmd2.Flags().GetString("output")
+	err = ioutil.WriteFile(output, b, 0644)
 	if err != nil {
 		return err
 	}
 
-	if len(output) > 0 {
-		cfg.Changelog.File = output
-	}
-
-	return writeChangelog(ctx, cfg, releases)
+	return nil
 }
 
 func init() {
 	var cmd2 = &cobra.Command{
-		Use:   "changelog",
-		Short: "Generate a changelog",
-		Run:   Runner(generateChangelog),
+		Use:   "upgrade",
+		Short: "Upgrade the configuration",
+		Run:   Runner(upgrade),
 		Args:  cobra.NoArgs,
 	}
 
-	cmd2.Flags().StringP("output", "o", "", "output file")
-
-	generateCmd.AddCommand(cmd2)
+	rootCmd.AddCommand(cmd2)
 }

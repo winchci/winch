@@ -135,12 +135,12 @@ func initialize(ctx context.Context) error {
 }
 
 func init() {
-	var cmd = &cobra.Command{
+	var cmd2 = &cobra.Command{
 		Use:   "init",
 		Short: "Initialize a configuration file",
 		Run:   Runner(initialize),
 		Args:  cobra.NoArgs,
 	}
 
-	rootCmd.AddCommand(cmd)
+	rootCmd.AddCommand(cmd2)
 }

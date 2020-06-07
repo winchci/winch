@@ -1,9 +1,52 @@
 name: winch
 description: Universal build and release tool
 repository: https://github.com/winchci/winch
-verbose: true
-build:
-  command: |
+
+env:
+  CGO_ENABLED: "0"
+  GO111MODULE: "on"
+  GOARCH: amd64
+  GOOS: linux
+
+jobs:
+  foo:
+    steps:
+      - use: winchci/foo
+  bar:
+    steps:
+      - use: winchci/foo
+    needs:
+      - foo
+  baz:
+    steps:
+      - use: winchci/foo
+    needs:
+      - bar
+
+steps:
+- use: winchci/foo
+  with:
+    directory: templates
+    except:
+    - /*.go
+    filename: templates/templates_gen.go
+    package: templates
+    variable: Assets
+
+- use: winchci/vfsgen
+  with:
+    directory: wordlists
+    filename: wordlists/wordlists_gen.go
+    only:
+    - /*.txt
+    package: wordlists
+    tag: '!dev'
+    variable: Assets
+
+- name: Download modules
+  run: go mod download
+
+- run: |
     go get -u \
         github.com/kisielk/errcheck \
         golang.org/x/tools/cmd/goimports \
@@ -33,99 +76,96 @@ build:
     go build -o bin/$GOOS-$GOARCH/winch-go-sec github.com/securego/gosec/v2/cmd/gosec
     go build -o bin/$GOOS-$GOARCH/winch-go-shadow golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
     go build -o bin/$GOOS-$GOARCH/winch-go-staticcheck honnef.co/go/tools/cmd/staticcheck
-version:
-  file: version/version_gen.go
-  template: version/winch_version.tmpl
-release:
-  branches:
-    only: master
-  artifacts:
+
+- name: Test
+  run: go test ./...
+
+- use: winchci/create-github-release
+  with:
+    artifacts:
     - ./bin/darwin-amd64/
     - ./bin/linux-amd64/
-homebrew:
-  enabled: true
-  organization: winchci
-  repository: homebrew-core
-  asset: darwin-amd64.tgz
-  install: |
-    bin.install "winch"
-    bin.install "winch-go-errcheck"
-    bin.install "winch-go-imports"
-    bin.install "winch-go-lint"
-    bin.install "winch-go-sec"
-    bin.install "winch-go-shadow"
-    bin.install "winch-go-staticcheck"
-  test: |
-    system "#{bin}/winch --version"
-  depends_on:
+  branches:
+    only: master
+
+- use: winchci/generate-homebrew
+  with:
+    asset: darwin-amd64.tgz
+    depends-on:
     - go
+    file: formula.rb
+    install: |
+      bin.install "winch"
+      bin.install "winch-go-errcheck"
+      bin.install "winch-go-imports"
+      bin.install "winch-go-lint"
+      bin.install "winch-go-sec"
+      bin.install "winch-go-shadow"
+      bin.install "winch-go-staticcheck"
+    organization: winchci
+    repository: homebrew-core
+    template: '!brew.tmpl'
+    test: |
+      system "#{bin}/winch --version"
   branches:
     only: master
-assets:
-- filename: templates/templates_gen.go
-  directory: templates
-  package: templates
-  variable: Assets
-  except:
-    - "/*.go"
-- filename: wordlists/wordlists_gen.go
-  directory: wordlists
-  package: wordlists
-  tag: "!dev"
-  variable: Assets
-  only:
-    - "/*.txt"
-dockers:
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: winch
-  tag: latest
-  buildargs:
-    image: base
+
+- use: winchci/publish-docker
+  with:
+    buildargs:
+      image: base
+    dockerfile: Dockerfile
+    organization: winchci
+    repository: winch
   branches:
     only: master
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: golang
-  tag: latest
-  buildargs:
-    image: golang
+
+- use: winchci/publish-docker
+  with:
+    buildargs:
+      image: golang
+    dockerfile: Dockerfile
+    organization: winchci
+    repository: golang
   branches:
     only: master
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: java-mvn
-  tag: latest
-  buildargs:
-    image: java-mvn
+
+- use: winchci/publish-docker
+  with:
+    buildargs:
+      image: java-mvn
+    dockerfile: Dockerfile
+    organization: winchci
+    repository: java-mvn
   branches:
     only: master
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: node
-  tag: latest
-  buildargs:
-    image: node
+
+- use: winchci/publish-docker
+  with:
+    buildargs:
+      image: node
+    dockerfile: Dockerfile
+    organization: winchci
+    repository: node
   branches:
     only: master
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: python
-  tag: latest
-  buildargs:
-    image: python
+
+- use: winchci/publish-docker
+  with:
+    buildargs:
+      image: python
+    dockerfile: Dockerfile
+    organization: winchci
+    repository: python
   branches:
     only: master
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: scala-sbt
-  tag: latest
-  buildargs:
-    image: scala-sbt
+
+- use: winchci/publish-docker
+  with:
+    buildargs:
+      image: scala-sbt
+    dockerfile: Dockerfile
+    organization: winchci
+    repository: scala-sbt
   branches:
     only: master
-environment:
-  GO111MODULE: on
-  CGO_ENABLED: 0
-  GOOS: linux
-  GOARCH: amd64

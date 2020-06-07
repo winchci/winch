@@ -17,18 +17,52 @@ see <https://www.gnu.org/licenses/>.
 package commands
 
 import (
+	"context"
+	"fmt"
+	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
-	"github.com/winchci/winch/config"
-	"github.com/winchci/winch/version"
+	"github.com/winchci/winch/v2/project"
+	"github.com/winchci/winch/v2/version"
 	"log"
+	"os"
+	"strings"
 )
 
 var rootCmd = &cobra.Command{
 	Use:               version.Name,
 	Short:             version.Description,
 	Version:           version.String(),
+	PersistentPreRunE: setup,
+	Run:               runner(root),
+	Args:              cobra.NoArgs,
 	TraverseChildren:  true,
-	PersistentPreRunE: config.Setup(),
+}
+
+// Setup sets up the configuration system.
+func setup(cmd *cobra.Command, args []string) error {
+	_ = godotenv.Overload()
+	return nil
+}
+
+func root(ctx context.Context, c *cobra.Command, args []string) error {
+	file, err := c.Flags().GetString("file")
+	if err != nil {
+		return err
+	}
+
+	p, err := project.LoadProject(ctx, file)
+	if err != nil {
+		return err
+	}
+
+	pm := project.NewManager()
+
+	err = pm.Execute(ctx, p)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func Execute() {
@@ -36,6 +70,23 @@ func Execute() {
 		log.Fatal(err)
 	}
 }
+
+func runner(f func(context.Context, *cobra.Command, []string) error) func(*cobra.Command, []string) {
+	return func(c *cobra.Command, args []string) {
+		err := f(context.Background(), c, args)
+		if err != nil {
+			parts := make([]string, 0)
+			for c != nil {
+				parts = append([]string{c.Name()}, parts...)
+				c = c.Parent()
+			}
+			name := strings.Join(parts, " ")
+			fmt.Printf("%s: %s\n", name, err)
+			os.Exit(1)
+		}
+	}
+}
+
 
 func init() {
 	rootCmd.SetHelpCommand(&cobra.Command{
@@ -56,7 +107,5 @@ Simply type ` + rootCmd.Name() + ` help [path to command] for full details.`,
 		},
 	})
 
-	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
-	rootCmd.PersistentFlags().BoolP("quiet", "q", false, "quiet output")
 	rootCmd.PersistentFlags().StringP("file", "f", "winch.yml", "configuration file")
 }

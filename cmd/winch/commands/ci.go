@@ -21,7 +21,10 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/winchci/winch"
+	"github.com/winchci/winch/changelog"
 	"github.com/winchci/winch/config"
+	"github.com/winchci/winch/publish"
+	"github.com/winchci/winch/release"
 	"os"
 )
 
@@ -41,12 +44,12 @@ func ci(ctx context.Context) error {
 	cfg.Verbose = true
 	cfg.Quiet = false
 
-	releases, err := makeReleases(ctx, cfg)
+	releases, err := changelog.MakeReleases(ctx, cfg)
 	if err != nil {
 		return err
 	}
 
-	version, prerelease := getVersionFromReleases(releases)
+	version, prerelease := changelog.GetVersionFromReleases(releases)
 	fmt.Printf("Version: %s\n", version)
 	fmt.Printf("Prerelease: %s\n", prerelease)
 
@@ -57,7 +60,7 @@ func ci(ctx context.Context) error {
 
 	if cfg.Version.IsEnabled() {
 		fmt.Println("Creating version")
-		err = writeVersion(cfg, version, prerelease)
+		err = changelog.WriteVersion(cfg, version, prerelease)
 		if err != nil {
 			return err
 		}
@@ -138,13 +141,13 @@ func ci(ctx context.Context) error {
 
 	if cfg.Release.IsEnabled() {
 		fmt.Println("Releasing")
-		err = release2(ctx, cfg)
+		err = release.DoRelease(ctx, cfg)
 		if err != nil {
 			return err
 		}
 	}
 
-	err = publish2(ctx, cfg)
+	err = publish.DoPublish(ctx, cfg)
 	if err != nil {
 		return err
 	}
@@ -153,12 +156,12 @@ func ci(ctx context.Context) error {
 }
 
 func init() {
-	var cmd = &cobra.Command{
+	var cmd2 = &cobra.Command{
 		Use:   "ci",
 		Short: "Execute a CI build",
 		Run:   Runner(ci),
 		Args:  cobra.NoArgs,
 	}
 
-	rootCmd.AddCommand(cmd)
+	rootCmd.AddCommand(cmd2)
 }
