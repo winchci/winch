@@ -45,6 +45,7 @@ release:
 homebrew:
   enabled: true
   organization: winchci
+  repository: homebrew-core
   asset: darwin-amd64.tgz
   install: |
     bin.install "winch"
