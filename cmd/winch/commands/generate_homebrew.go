@@ -61,6 +61,9 @@ func writeHomebrew(ctx context.Context, cfg *config.Config, t *config.HomebrewCo
 	if _, ok := vars["Description"]; !ok {
 		vars["Description"] = cfg.Description
 	}
+	if _, ok := vars["Organization"]; !ok {
+		vars["Organization"] = t.Organization
+	}
 	if _, ok := vars["Repository"]; !ok {
 		vars["Repository"] = fmt.Sprintf("homebrew-%s", vars["Name"])
 	}
@@ -97,7 +100,11 @@ func writeHomebrew(ctx context.Context, cfg *config.Config, t *config.HomebrewCo
 		fmt.Printf("homebrew: downloading '%s'\n", vars["Url"].(string))
 
 		req, err := http.NewRequestWithContext(ctx, "GET", vars["Url"].(string), nil)
-		req.SetBasicAuth("sethyates", os.Getenv("GITHUB_TOKEN"))
+		if err != nil {
+			return err
+		}
+
+		req.SetBasicAuth(t.Organization, os.Getenv("GITHUB_TOKEN"))
 
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -130,6 +137,14 @@ func writeHomebrew(ctx context.Context, cfg *config.Config, t *config.HomebrewCo
 	if err != nil {
 		return err
 	}
+
+	f.Close()
+
+	b, err := ioutil.ReadFile(filepath.Join(cfg.BasePath, file))
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(b))
 
 	return nil
 }
