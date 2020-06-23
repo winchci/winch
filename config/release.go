@@ -29,7 +29,7 @@ type ReleaseConfig struct {
 }
 
 func (c *ReleaseConfig) IsEnabled() bool {
-	return c != nil && (c.Enabled == nil || (c.Enabled != nil && *c.Enabled)) && len(c.Command) > 0
+	return c != nil && (c.Enabled == nil || (c.Enabled != nil && *c.Enabled))
 }
 
 func (c *ReleaseConfig) RunConfig() *RunConfig {
