@@ -49,7 +49,7 @@ func release2(ctx context.Context, cfg *config.Config) error {
 
 	// Run a provided release command
 	if cfg.Release != nil {
-		err = winch.Run(ctx, &cfg.Release.RunConfig, cfg)
+		err = winch.Run(ctx, cfg.Release.RunConfig(), cfg)
 		if err != nil {
 			return err
 		}

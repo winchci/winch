@@ -18,10 +18,32 @@ package config
 
 // ReleaseConfig provides config for releases
 type ReleaseConfig struct {
-	RunConfig
-	Artifacts []string `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
+	Enabled     *bool             `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	Name        string            `json:"name,omitempty" yaml:"name,omitempty"`
+	Command     string            `json:"command,omitempty" yaml:"command,omitempty"`
+	Environment map[string]string `json:"environment,omitempty" yaml:"environment,omitempty"`
+	Branches    *FilterConfig     `json:"branches,omitempty" yaml:"branches,omitempty"`
+	Tags        *FilterConfig     `json:"tags,omitempty" yaml:"tags,omitempty"`
+	Input       string            `json:"input,omitempty" yaml:"input,omitempty"`
+	Artifacts   []string          `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
 }
 
-func (d *ReleaseConfig) IsEnabled() bool {
-	return d != nil && (d.Enabled == nil || *d.Enabled)
+func (c *ReleaseConfig) IsEnabled() bool {
+	return c != nil && (c.Enabled == nil || (c.Enabled != nil && *c.Enabled)) && len(c.Command) > 0
+}
+
+func (c *ReleaseConfig) RunConfig() *RunConfig {
+	if c == nil {
+		return nil
+	}
+
+	return &RunConfig{
+		Enabled:     c.Enabled,
+		Name:        c.Name,
+		Command:     c.Command,
+		Environment: c.Environment,
+		Branches:    c.Branches,
+		Tags:        c.Tags,
+		Input:       c.Input,
+	}
 }
