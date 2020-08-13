@@ -24,7 +24,7 @@ require (
 	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/klauspost/compress v1.10.7 // indirect
 	github.com/klauspost/pgzip v1.2.4 // indirect
-	github.com/lib/pq v1.7.0
+	github.com/lib/pq v1.8.0
 	github.com/mholt/archiver/v3 v3.3.0
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db
 	github.com/mitchellh/mapstructure v1.3.1 // indirect
