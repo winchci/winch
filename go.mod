@@ -10,16 +10,14 @@ require (
 	github.com/docker/docker v1.13.1
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
-	github.com/golang/protobuf v1.4.2
+	github.com/golang/protobuf v1.4.3
 	github.com/google/go-github/v28 v28.1.1
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
 	github.com/hashicorp/go-retryablehttp v0.6.6 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
-	github.com/jcmturner/gokrb5/v8 v8.3.0 // indirect
 	github.com/joho/godotenv v1.3.0
-	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/lib/pq v1.8.0
 	github.com/mholt/archiver/v3 v3.3.2
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db
@@ -31,7 +29,6 @@ require (
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
-	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
