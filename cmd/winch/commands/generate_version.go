@@ -38,7 +38,14 @@ type VersionBumpInfo struct {
 }
 
 func writeVersionFromTemplate(cfg *config.Config, version VersionBumpInfo) error {
-	f, err := os.Create(filepath.Join(cfg.BasePath, cfg.Version.File))
+	filename := filepath.Join(cfg.BasePath, cfg.Version.File)
+
+	err := os.MkdirAll(filepath.Dir(filename), 0750)
+	if err != nil {
+		return err
+	}
+
+	f, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
