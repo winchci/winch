@@ -17,9 +17,7 @@ require (
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
-	github.com/jcmturner/gokrb5/v8 v8.3.0 // indirect
 	github.com/joho/godotenv v1.3.0
-	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/lib/pq v1.8.0
 	github.com/mholt/archiver/v3 v3.3.2
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db
@@ -29,9 +27,8 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
-	github.com/spf13/cobra v1.0.0
+	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
-	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
