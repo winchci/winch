@@ -24,7 +24,7 @@ require (
 	github.com/klauspost/compress v1.11.1 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/lib/pq v1.8.0
-	github.com/mholt/archiver/v3 v3.3.2
+	github.com/mholt/archiver/v3 v3.4.0
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
