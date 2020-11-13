@@ -38,7 +38,7 @@ version:
   template: version/winch_version.tmpl
 release:
   branches:
-    only: master
+    only: main
   artifacts:
     - ./bin/darwin-amd64/
     - ./bin/linux-amd64/
@@ -60,7 +60,7 @@ homebrew:
   depends_on:
     - go
   branches:
-    only: master
+    only: main
 assets:
 - filename: templates/templates_gen.go
   directory: templates
@@ -83,7 +83,7 @@ dockers:
   buildargs:
     image: base
   branches:
-    only: master
+    only: main
 - dockerfile: Dockerfile
   organization: winchci
   repository: golang
@@ -91,7 +91,7 @@ dockers:
   buildargs:
     image: golang
   branches:
-    only: master
+    only: main
 - dockerfile: Dockerfile
   organization: winchci
   repository: java-mvn
@@ -99,7 +99,7 @@ dockers:
   buildargs:
     image: java-mvn
   branches:
-    only: master
+    only: main
 - dockerfile: Dockerfile
   organization: winchci
   repository: node
@@ -107,7 +107,7 @@ dockers:
   buildargs:
     image: node
   branches:
-    only: master
+    only: main
 - dockerfile: Dockerfile
   organization: winchci
   repository: python
@@ -115,7 +115,7 @@ dockers:
   buildargs:
     image: python
   branches:
-    only: master
+    only: main
 - dockerfile: Dockerfile
   organization: winchci
   repository: scala-sbt
@@ -123,7 +123,7 @@ dockers:
   buildargs:
     image: scala-sbt
   branches:
-    only: master
+    only: main
 environment:
   GO111MODULE: on
   CGO_ENABLED: 0
