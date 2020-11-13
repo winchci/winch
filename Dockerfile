@@ -38,16 +38,16 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 FROM openjdk:15-jdk-alpine AS scala-sbt
 
-ENV SCALA_VERSION 2.13.1
-ENV SBT_VERSION 1.3.5
+ENV SCALA_VERSION 2.13.3
+ENV SBT_VERSION 1.4.2
 
 ENV PATH /sbt/bin:$PATH
 
 RUN apk add -U bash docker && \
-  wget -O - https://downloads.typesafe.com/scala/$SCALA_VERSION/scala-$SCALA_VERSION.tgz | tar xfz - -C /root/ && \
+  wget -O - https://downloads.lightbend.com/scala/$SCALA_VERSION/scala-$SCALA_VERSION.tgz | tar xfz - -C /root/ && \
   echo >> /root/.bashrc && \
   echo "export PATH=~/scala-$SCALA_VERSION/bin:$PATH" >> /root/.bashrc && \
-  wget https://piccolo.link/sbt-$SBT_VERSION.tgz && \
+  wget https://github.com/sbt/sbt/releases/download/v$SBT_VERSION/sbt-$SBT_VERSION.tgz && \
   tar -xzvf sbt-$SBT_VERSION.tgz && \
   sbt sbtVersion && \
   apk add --update --no-cache git openssh-client
