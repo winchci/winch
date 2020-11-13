@@ -49,7 +49,6 @@ RUN apk add -U bash docker && \
   echo "export PATH=~/scala-$SCALA_VERSION/bin:$PATH" >> /root/.bashrc && \
   wget https://github.com/sbt/sbt/releases/download/v$SBT_VERSION/sbt-$SBT_VERSION.tgz && \
   tar -xzvf sbt-$SBT_VERSION.tgz && \
-  sbt sbtVersion && \
   apk add --update --no-cache git openssh-client
 
 COPY bin/linux-amd64/winch /usr/local/bin/winch
