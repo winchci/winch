@@ -65,7 +65,7 @@ func release2(ctx context.Context, cfg *config.Config) error {
 		return err
 	}
 
-	if len(changelog.Releases) > 1 {
+	if len(changelog.Releases) > 0 {
 		changelog.Releases = changelog.Releases[0:1]
 	}
 
