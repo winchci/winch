@@ -65,7 +65,9 @@ func release2(ctx context.Context, cfg *config.Config) error {
 		return err
 	}
 
-	changelog.Releases = changelog.Releases[0:1]
+	if len(changelog.Releases) > 1 {
+		changelog.Releases = changelog.Releases[0:1]
+	}
 
 	body, err := templates.Execute(ctx, "release.tmpl", changelog)
 	if err != nil {
