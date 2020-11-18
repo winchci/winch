@@ -74,7 +74,10 @@ func release2(ctx context.Context, cfg *config.Config) error {
 		return err
 	}
 
-	tag := changelog.Releases[0].Version
+	tag := "0.0.1"
+	if len(changelog.Releases) > 0 {
+		tag = changelog.Releases[0].Version
+	}
 
 	client, err := winch.NewGitHub(ctx, cfg.Repository)
 	if err != nil {
