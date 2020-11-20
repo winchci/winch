@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/andybalholm/brotli v1.0.1 // indirect
-	github.com/aws/aws-sdk-go v1.35.30
+	github.com/aws/aws-sdk-go v1.35.32
 	github.com/coreos/go-semver v0.3.0
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v1.13.1
@@ -37,7 +37,6 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/ulikunitz/xz v0.5.8 // indirect
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
-	golang.org/x/net v0.0.0-20201016165138-7b1cca2348c0 // indirect
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	golang.org/x/sys v0.0.0-20201018230417-eeed37f84f13 // indirect
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
