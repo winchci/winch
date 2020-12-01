@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/winchci/winch/config"
 	"github.com/winchci/winch/docker"
+	"time"
 )
 
 func dockerBuild(ctx context.Context) error {
@@ -45,6 +46,12 @@ func dockerBuild(ctx context.Context) error {
 	}
 
 	for _, dockerConfig := range dockers {
+		dockerConfig.Labels["org.opencontainers.image.source"] = cfg.Repository
+		dockerConfig.Labels["org.opencontainers.image.created"] = time.Now().UTC().Format(time.RFC3339)
+		dockerConfig.Labels["org.opencontainers.image.version"] = version
+		dockerConfig.Labels["org.opencontainers.image.title"] = cfg.Name
+		dockerConfig.Labels["org.opencontainers.image.description"] = cfg.Description
+
 		d, err := docker.NewDocker(dockerConfig, cfg.Name)
 		if err != nil {
 			return err

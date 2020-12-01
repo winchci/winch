@@ -28,6 +28,7 @@ type DockerConfig struct {
 	Context      string             `json:"context,omitempty" yaml:"context,omitempty"`
 	Tag          string             `json:"tag,omitempty" yaml:"tag,omitempty"`
 	BuildArgs    map[string]*string `json:"buildargs,omitempty" yaml:"buildargs,omitempty"`
+	Labels       map[string]string  `json:"labels,omitempty" yaml:"labels,omitempty"`
 	Branches     *FilterConfig      `json:"branches,omitempty" yaml:"branches,omitempty"`
 	Tags         *FilterConfig      `json:"tags,omitempty" yaml:"tags,omitempty"`
 }

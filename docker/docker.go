@@ -182,6 +182,7 @@ func (d Docker) Build(ctx context.Context, tag string) error {
 		Tags:       tags,
 		Dockerfile: d.cfg.Dockerfile,
 		BuildArgs:  d.cfg.BuildArgs,
+		Labels:     d.cfg.Labels,
 	})
 	if err != nil {
 		return err
