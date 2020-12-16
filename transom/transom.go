@@ -65,8 +65,8 @@ type errorResponse struct {
 }
 
 type Transom struct {
-	url         string
-	token       string
+	url   string
+	token string
 }
 
 func NewTransom(cfg *config.TransomConfig, name string) (*Transom, error) {
@@ -107,7 +107,7 @@ func NewTransom(cfg *config.TransomConfig, name string) (*Transom, error) {
 	}
 
 	return &Transom{
-		url:         fmt.Sprintf("https://%s/transom/", cfg.Server),
+		url: fmt.Sprintf("https://%s/transom/", cfg.Server),
 	}, nil
 }
 
