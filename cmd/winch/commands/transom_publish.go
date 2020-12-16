@@ -46,21 +46,6 @@ func publishToTransom(ctx context.Context, cfg *config.Config, ver string) error
 
 	if len(cfg.Transom.Token) > 0 {
 		t.SetToken(cfg.Transom.Token)
-	} else {
-		if !cfg.Quiet {
-			fmt.Println("Logging into Transom")
-		}
-
-		resp, err := t.Login(ctx, &transom.LoginRequest{
-			Username:   cfg.Transom.Username,
-			Password:   cfg.Transom.Password,
-			ClientCode: "winch",
-		})
-		if err != nil {
-			return err
-		}
-
-		t.SetToken(resp.Token)
 	}
 
 	artifactsArchive := "artifacts.zip"
