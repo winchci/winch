@@ -33,14 +33,14 @@ import (
 var t *template.Template
 
 var funcs = map[string]interface{}{
-	"snake": strcase.ToSnake,
+	"snake":           strcase.ToSnake,
 	"screaming_snake": strcase.ToScreamingSnake,
-	"kebab": strcase.ToKebab,
+	"kebab":           strcase.ToKebab,
 	"screaming_kebab": strcase.ToScreamingKebab,
-	"camel": strcase.ToCamel,
-	"lower_camel": strcase.ToLowerCamel,
-	"upper": strings.ToUpper,
-	"lower": strings.ToLower,
+	"camel":           strcase.ToCamel,
+	"lower_camel":     strcase.ToLowerCamel,
+	"upper":           strings.ToUpper,
+	"lower":           strings.ToLower,
 	"withoutscheme": func(str string) string {
 		u, err := url.Parse(str)
 		if err != nil {

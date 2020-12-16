@@ -65,20 +65,11 @@ type errorResponse struct {
 }
 
 type Transom struct {
-	shipyardUrl string
-	url         string
-	token       string
+	url   string
+	token string
 }
 
 func NewTransom(cfg *config.TransomConfig, name string) (*Transom, error) {
-	if len(cfg.Shipyard) == 0 {
-		cfg.Shipyard = os.Getenv("TRANSOM_SHIPYARD")
-	}
-
-	if len(cfg.Shipyard) == 0 {
-		cfg.Shipyard = "shipyard.b10s.io"
-	}
-
 	if len(cfg.Server) == 0 {
 		cfg.Server = os.Getenv("TRANSOM_SERVER")
 	}
@@ -115,42 +106,13 @@ func NewTransom(cfg *config.TransomConfig, name string) (*Transom, error) {
 		cfg.Token = os.Getenv("TRANSOM_TOKEN")
 	}
 
-	if len(cfg.Token) == 0 {
-		if len(cfg.Username) == 0 {
-			cfg.Username = os.Getenv("TRANSOM_USERNAME")
-		}
-
-		if len(cfg.Username) == 0 {
-			return nil, fmt.Errorf("the Transom username or token is required")
-		}
-
-		if len(cfg.Password) == 0 {
-			cfg.Password = os.Getenv("TRANSOM_PASSWORD")
-		}
-
-		if len(cfg.Password) == 0 {
-			return nil, fmt.Errorf("the Transom password or token is required")
-		}
-	}
-
 	return &Transom{
-		shipyardUrl: fmt.Sprintf("https://%s/shipyard/", cfg.Shipyard),
-		url:         fmt.Sprintf("https://%s/transom/", cfg.Server),
+		url: fmt.Sprintf("https://%s/transom/", cfg.Server),
 	}, nil
 }
 
 func (t *Transom) SetToken(token string) {
 	t.token = token
-}
-
-func (t Transom) Login(ctx context.Context, in *LoginRequest) (*LoginResponse, error) {
-	var resp LoginResponse
-	err := t.do(ctx, t.shipyardUrl, "tenants/transom/login", in, &resp, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &resp, nil
 }
 
 // ComputeChecksum computes a SHA-256 checksum of the given byte slice.
