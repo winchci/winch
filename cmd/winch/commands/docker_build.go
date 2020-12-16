@@ -46,6 +46,9 @@ func dockerBuild(ctx context.Context) error {
 	}
 
 	for _, dockerConfig := range dockers {
+		if dockerConfig.Labels == nil {
+			dockerConfig.Labels = make(map[string]string)
+		}
 		dockerConfig.Labels["org.opencontainers.image.source"] = cfg.Repository
 		dockerConfig.Labels["org.opencontainers.image.created"] = time.Now().UTC().Format(time.RFC3339)
 		dockerConfig.Labels["org.opencontainers.image.version"] = version
