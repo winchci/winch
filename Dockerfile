@@ -18,12 +18,8 @@ COPY bin/linux-amd64/winch-go-staticcheck /usr/local/bin/winch-go-staticcheck
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
-FROM node:15.4-alpine AS node
-ENV PYTHONUNBUFFERED=1
-RUN apk add --update --no-cache git openssh-client python2 python3
-RUN python -m ensurepip
-RUN pip install --no-cache --upgrade pip setuptools
-RUN python3 -m pip install --no-cache --upgrade pip setuptools
+FROM node:13.8-alpine AS node
+RUN apk add --update --no-cache git openssh-client
 COPY bin/linux-amd64/winch /usr/local/bin/winch
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
