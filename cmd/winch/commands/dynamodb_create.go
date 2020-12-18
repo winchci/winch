@@ -31,7 +31,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/winchci/winch/config"
 	ddb "github.com/winchci/winch/dynamodb"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"log"
 	"os"

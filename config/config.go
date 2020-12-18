@@ -27,7 +27,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // FilterConfig provides config for filters
@@ -114,6 +114,7 @@ type Config struct {
 	AfterTest     *RunConfig                   `json:"after_test,omitempty" yaml:"after_test,omitempty"`
 	Changelog     *TemplateFileConfig          `json:"changelog,omitempty" yaml:"changelog,omitempty"`
 	Version       *TemplateFileConfig          `json:"version,omitempty" yaml:"version,omitempty"`
+	Versions      []*TemplateFileConfig        `json:"versions,omitempty" yaml:"versions,omitempty"`
 	GitHubAction  *TemplateFileConfig          `json:"githubaction,omitempty" yaml:"githubaction,omitempty"`
 	Dockerfile    *TemplateFileConfig          `json:"dockerfile,omitempty" yaml:"dockerfile,omitempty"`
 	Dockerfiles   []*TemplateFileConfig        `json:"dockerfiles,omitempty" yaml:"dockerfiles,omitempty"`

@@ -23,6 +23,7 @@ import (
 	"github.com/winchci/winch"
 	"github.com/winchci/winch/config"
 	"github.com/winchci/winch/templates"
+	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -37,73 +38,96 @@ type VersionBumpInfo struct {
 	Prerelease  string
 }
 
-func writeVersionFromTemplate(cfg *config.Config, version VersionBumpInfo) error {
-	filename := filepath.Join(cfg.BasePath, cfg.Version.File)
-
-	err := os.MkdirAll(filepath.Dir(filename), 0750)
-	if err != nil {
-		return err
+func writeVersionToFile(cfg *config.Config, file *config.TemplateFileConfig, version VersionBumpInfo) error {
+	if !file.IsEnabled() {
+		return nil
 	}
 
-	f, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
+	filename := filepath.Join(cfg.BasePath, file.File)
 
-	defer f.Close()
+	switch filepath.Ext(filename) {
+	case ".json":
+		b, err := ioutil.ReadFile(filename)
+		if err != nil {
+			b = []byte("{}")
+		}
 
-	vars := cfg.Version.Variables
-	if vars == nil {
-		vars = make(map[string]string)
-	}
-	if _, ok := vars["Name"]; !ok {
-		vars["Name"] = version.Name
-	}
-	if _, ok := vars["Version"]; !ok {
-		vars["Version"] = version.Version
-	}
-	if _, ok := vars["Description"]; !ok {
-		vars["Description"] = version.Description
-	}
-	if _, ok := vars["ReleaseName"]; !ok {
-		vars["ReleaseName"] = version.ReleaseName
-	}
-	if _, ok := vars["Prerelease"]; !ok {
-		vars["Prerelease"] = version.Prerelease
-	}
+		var j map[string]interface{}
+		err = json.Unmarshal(b, &j)
+		if err != nil {
+			return err
+		}
 
-	err = templates.Load(cfg.BasePath, cfg.Version.Template).Execute(f, vars)
-	if err != nil {
-		return err
+		j["version"] = strings.TrimPrefix(version.Version, "v")
+
+		b, err = json.MarshalIndent(j, "", "\t")
+		if err != nil {
+			return err
+		}
+
+		return ioutil.WriteFile(filename, b, 0644)
+
+	case ".yaml", ".yml":
+		b, err := ioutil.ReadFile(filename)
+		if err != nil {
+			b = []byte("version:\n")
+		}
+
+		var j map[string]interface{}
+		err = yaml.Unmarshal(b, &j)
+		if err != nil {
+			return err
+		}
+
+		j["version"] = strings.TrimPrefix(version.Version, "v")
+
+		b, err = yaml.Marshal(j)
+		if err != nil {
+			return err
+		}
+
+		return ioutil.WriteFile(filename, b, 0644)
+
+	default:
+		err := os.MkdirAll(filepath.Dir(filename), 0750)
+		if err != nil {
+			return err
+		}
+
+		f, err := os.Create(filename)
+		if err != nil {
+			return err
+		}
+
+		defer f.Close()
+
+		vars := file.Variables
+		if vars == nil {
+			vars = make(map[string]string)
+		}
+		if _, ok := vars["Name"]; !ok {
+			vars["Name"] = version.Name
+		}
+		if _, ok := vars["Version"]; !ok {
+			vars["Version"] = version.Version
+		}
+		if _, ok := vars["Description"]; !ok {
+			vars["Description"] = version.Description
+		}
+		if _, ok := vars["ReleaseName"]; !ok {
+			vars["ReleaseName"] = version.ReleaseName
+		}
+		if _, ok := vars["Prerelease"]; !ok {
+			vars["Prerelease"] = version.Prerelease
+		}
+
+		err = templates.Load(cfg.BasePath, file.Template).Execute(f, vars)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
-
-	return nil
-}
-
-func writeVersionNode(cfg *config.Config, version VersionBumpInfo) error {
-	b, err := ioutil.ReadFile(cfg.Version.File)
-	if err != nil {
-		return err
-	}
-
-	var j map[string]interface{}
-	err = json.Unmarshal(b, &j)
-	if err != nil {
-		return err
-	}
-
-	if len(version.Description) > 0 {
-		j["description"] = version.Description
-	}
-
-	j["version"] = strings.TrimPrefix(version.Version, "v")
-
-	b, err = json.MarshalIndent(j, "", "\t")
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(cfg.Version.File, b, 0644)
 }
 
 func getVersionFromReleases(releases []*winch.Release) (string, string) {
@@ -133,11 +157,19 @@ func writeVersion(cfg *config.Config, version, prerelease string) error {
 		Prerelease:  prerelease,
 	}
 
-	if cfg.Language == "node" {
-		return writeVersionNode(cfg, vbi)
-	} else {
-		return writeVersionFromTemplate(cfg, vbi)
+	err := writeVersionToFile(cfg, cfg.Version, vbi)
+	if err != nil {
+		return err
 	}
+
+	for _, file := range cfg.Versions {
+		err := writeVersionToFile(cfg, file, vbi)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func generateVersion(ctx context.Context) error {

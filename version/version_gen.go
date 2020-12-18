@@ -9,8 +9,8 @@ import (
 const (
 	Name        = "winch"
 	Description = "Universal build and release tool"
-	ReleaseName = "bright pronghorn"
-	Version     = "0.26.5"
+	ReleaseName = "noxious hedgehog"
+	Version     = "1.3.8"
 	Prerelease  = ""
 )
 
@@ -22,3 +22,4 @@ func String() string {
 	}
 	return fmt.Sprintf("%s %s", Version, s)
 }
+

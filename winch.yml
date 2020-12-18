@@ -33,9 +33,11 @@ build:
     go build -o bin/$GOOS-$GOARCH/winch-go-sec github.com/securego/gosec/v2/cmd/gosec
     go build -o bin/$GOOS-$GOARCH/winch-go-shadow golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
     go build -o bin/$GOOS-$GOARCH/winch-go-staticcheck honnef.co/go/tools/cmd/staticcheck
-version:
-  file: version/version_gen.go
+versions:
+- file: version/version_gen.go
   template: version/winch_version.tmpl
+- file: foo.json
+- file: bar.yaml
 release:
   branches:
     only: main
