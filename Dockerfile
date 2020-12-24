@@ -19,7 +19,7 @@ COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 FROM node:13.8-alpine AS node
-RUN apk add --update --no-cache git openssh-client
+RUN apk add --update --no-cache git openssh-client python3
 COPY bin/linux-amd64/winch /usr/local/bin/winch
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
