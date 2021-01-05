@@ -18,7 +18,7 @@ COPY bin/linux-amd64/winch-go-staticcheck /usr/local/bin/winch-go-staticcheck
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
-FROM node:13.8-alpine AS node
+FROM node:15.5-alpine AS node
 RUN apk add --update --no-cache git openssh-client python3 alpine-sdk
 COPY bin/linux-amd64/winch /usr/local/bin/winch
 COPY entrypoint.sh /entrypoint.sh
