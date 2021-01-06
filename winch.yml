@@ -96,36 +96,36 @@ dockers:
     only: main
 - dockerfile: Dockerfile
   organization: winchci
-  repository: java-mvn
-  tag: latest
-  buildargs:
-    image: java-mvn
-  branches:
-    only: main
-- dockerfile: Dockerfile
-  organization: winchci
   repository: node
   tag: latest
   buildargs:
     image: node
   branches:
     only: main
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: python
-  tag: latest
-  buildargs:
-    image: python
-  branches:
-    only: main
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: scala-sbt
-  tag: latest
-  buildargs:
-    image: scala-sbt
-  branches:
-    only: main
+#- dockerfile: Dockerfile
+#  organization: winchci
+#  repository: python
+#  tag: latest
+#  buildargs:
+#    image: python
+#  branches:
+#    only: main
+#- dockerfile: Dockerfile
+#  organization: winchci
+#  repository: java-mvn
+#  tag: latest
+#  buildargs:
+#    image: java-mvn
+#  branches:
+#    only: main
+#- dockerfile: Dockerfile
+#  organization: winchci
+#  repository: scala-sbt
+#  tag: latest
+#  buildargs:
+#    image: scala-sbt
+#  branches:
+#    only: main
 environment:
   GO111MODULE: on
   CGO_ENABLED: 0
