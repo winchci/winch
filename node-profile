@@ -1,3 +1,0 @@
-export NVM_DIR="$HOME/.nvm"
-export NVM_NODEJS_ORG_MIRROR=https://official-builds.nodejs.org/download/release
-nvm_get_arch() { nvm_echo "x64-musl"; }

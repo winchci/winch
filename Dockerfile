@@ -18,16 +18,22 @@ COPY bin/linux-amd64/winch-go-staticcheck /usr/local/bin/winch-go-staticcheck
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
-FROM alpine:latest AS node
-RUN apk add --update --no-cache git openssh-client bash python3 alpine-sdk libstdc++ && \
-    sed -i'' 's!/ash!/bash!g' /etc/passwd
-COPY node-profile /root/.profile
-SHELL ["/bin/bash", "-c"]
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash && \
-    source $HOME/.profile && \
-    nvm install --lts
+FROM node:15-alpine AS node-15
+RUN apk add --update --no-cache git openssh-client python3 alpine-sdk
 COPY bin/linux-amd64/winch /usr/local/bin/winch
-COPY node-entrypoint.sh /entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
+FROM node:14-alpine AS node-14
+RUN apk add --update --no-cache git openssh-client python3 alpine-sdk
+COPY bin/linux-amd64/winch /usr/local/bin/winch
+COPY entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
+FROM node:13-alpine AS node-13
+RUN apk add --update --no-cache git openssh-client python3 alpine-sdk
+COPY bin/linux-amd64/winch /usr/local/bin/winch
+COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 #FROM python:3.9-alpine AS python

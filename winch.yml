@@ -96,10 +96,42 @@ dockers:
     only: main
 - dockerfile: Dockerfile
   organization: winchci
-  repository: node
+  repository: node-13
   tag: latest
   buildargs:
-    image: node
+    image: node-13
+  branches:
+    only: main
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: node-14
+  tag: latest
+  buildargs:
+    image: node-14
+  branches:
+    only: main
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: node-15
+  tag: latest
+  buildargs:
+    image: node-15
+  branches:
+    only: main
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: node-latest
+  tag: latest
+  buildargs:
+    image: node-15
+  branches:
+    only: main
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: node-lts
+  tag: latest
+  buildargs:
+    image: node-14
   branches:
     only: main
 #- dockerfile: Dockerfile
