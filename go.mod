@@ -33,7 +33,7 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/shurcooL/vfsgen v0.0.0-20200824052919-0d455de96546
-	github.com/spf13/cobra v1.1.1
+	github.com/spf13/cobra v1.1.2
 	github.com/spf13/pflag v1.0.5
 	github.com/ulikunitz/xz v0.5.8 // indirect
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
