@@ -58,7 +58,22 @@ func writeVersionToFile(cfg *config.Config, file *config.TemplateFileConfig, ver
 			return err
 		}
 
-		j["version"] = strings.TrimPrefix(version.Version, "v")
+		path := []string{"version"}
+
+		if file.Variables != nil && len(file.Variables["path"]) > 0 {
+			path = strings.Split(file.Variables["path"], ".")
+		}
+
+		v := j
+		for _, key := range path[0:len(path)-1] {
+			if _, ok := v[key]; !ok {
+				v[key] = make(map[string]interface{})
+			}
+
+			v = v[key].(map[string]interface{})
+		}
+
+		v[path[len(path)-1]] = strings.TrimPrefix(version.Version, "v")
 
 		b, err = json.MarshalIndent(j, "", "\t")
 		if err != nil {
@@ -79,7 +94,22 @@ func writeVersionToFile(cfg *config.Config, file *config.TemplateFileConfig, ver
 			return err
 		}
 
-		j["version"] = strings.TrimPrefix(version.Version, "v")
+		path := []string{"version"}
+
+		if file.Variables != nil && len(file.Variables["path"]) > 0 {
+			path = strings.Split(file.Variables["path"], ".")
+		}
+
+		v := j
+		for _, key := range path[0:len(path)-1] {
+			if _, ok := v[key]; !ok {
+				v[key] = make(map[string]interface{})
+			}
+
+			v = v[key].(map[string]interface{})
+		}
+
+		v[path[len(path)-1]] = strings.TrimPrefix(version.Version, "v")
 
 		b, err = yaml.Marshal(j)
 		if err != nil {
