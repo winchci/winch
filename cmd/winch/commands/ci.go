@@ -55,12 +55,10 @@ func ci(ctx context.Context) error {
 		return err
 	}
 
-	if cfg.Version.IsEnabled() {
-		fmt.Println("Creating version")
-		err = writeVersion(cfg, version, prerelease)
-		if err != nil {
-			return err
-		}
+	fmt.Println("Creating version")
+	err = writeVersion(cfg, version, prerelease)
+	if err != nil {
+		return err
 	}
 
 	if cfg.Changelog.IsEnabled() {
