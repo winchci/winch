@@ -187,19 +187,15 @@ func writeVersion(cfg *config.Config, version, prerelease string) error {
 		Prerelease:  prerelease,
 	}
 
-	if cfg.Version.IsEnabled() {
-		err := writeVersionToFile(cfg, cfg.Version, vbi)
-		if err != nil {
-			return err
-		}
+	err := writeVersionToFile(cfg, cfg.Version, vbi)
+	if err != nil {
+		return err
 	}
 
 	for _, file := range cfg.Versions {
-		if file.IsEnabled() {
-			err := writeVersionToFile(cfg, file, vbi)
-			if err != nil {
-				return err
-			}
+		err := writeVersionToFile(cfg, file, vbi)
+		if err != nil {
+			return err
 		}
 	}
 
