@@ -31,8 +31,6 @@ homebrew:
     bin.install "winch"
   test: |
     system "#{bin}/winch --version"
-  depends_on:
-    - go
   branches:
     only: main
 assets:
@@ -116,10 +114,26 @@ dockers:
     only: main
 - dockerfile: Dockerfile
   organization: winchci
-  repository: java-mvn
+  repository: java-16
   tag: latest
   buildargs:
-    image: java-mvn
+    image: java-16
+  branches:
+    only: main
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: java-latest
+  tag: latest
+  buildargs:
+    image: java-16
+  branches:
+    only: main
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: java-lts
+  tag: latest
+  buildargs:
+    image: java-11
   branches:
     only: main
 #- dockerfile: Dockerfile
