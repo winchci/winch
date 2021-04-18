@@ -48,12 +48,6 @@ COPY bin/linux-amd64/winch /usr/local/bin/winch
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
-FROM openjdk:11-jdk-alpine AS java-11
-RUN apk add --update --no-cache git openssh-client
-COPY bin/linux-amd64/winch /usr/local/bin/winch
-COPY entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
-
 FROM openjdk:8-jdk-alpine AS java-8
 RUN apk add --update --no-cache git openssh-client
 COPY bin/linux-amd64/winch /usr/local/bin/winch

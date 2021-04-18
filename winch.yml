@@ -128,14 +128,6 @@ dockers:
     image: java-16
   branches:
     only: main
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: java-lts
-  tag: latest
-  buildargs:
-    image: java-11
-  branches:
-    only: main
 #- dockerfile: Dockerfile
 #  organization: winchci
 #  repository: scala-sbt
