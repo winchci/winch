@@ -4,40 +4,18 @@ repository: https://github.com/winchci/winch
 verbose: true
 build:
   command: |
-    go get -u \
-        github.com/kisielk/errcheck \
-        golang.org/x/tools/cmd/goimports \
-        golang.org/x/lint/golint \
-        github.com/securego/gosec/v2 \
-        golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow \
-        honnef.co/go/tools/cmd/staticcheck
-
     export GOOS=linux
     mkdir -p bin/$GOOS-$GOARCH
 
     go build -o bin/$GOOS-$GOARCH/winch ./cmd/winch/main.go
-    go build -o bin/$GOOS-$GOARCH/winch-go-errcheck github.com/kisielk/errcheck
-    go build -o bin/$GOOS-$GOARCH/winch-go-imports golang.org/x/tools/cmd/goimports
-    go build -o bin/$GOOS-$GOARCH/winch-go-lint golang.org/x/lint/golint
-    go build -o bin/$GOOS-$GOARCH/winch-go-sec github.com/securego/gosec/v2/cmd/gosec
-    go build -o bin/$GOOS-$GOARCH/winch-go-shadow golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
-    go build -o bin/$GOOS-$GOARCH/winch-go-staticcheck honnef.co/go/tools/cmd/staticcheck
 
     export GOOS=darwin
     mkdir -p bin/$GOOS-$GOARCH
 
     go build -o bin/$GOOS-$GOARCH/winch ./cmd/winch/main.go
-    go build -o bin/$GOOS-$GOARCH/winch-go-errcheck github.com/kisielk/errcheck
-    go build -o bin/$GOOS-$GOARCH/winch-go-imports golang.org/x/tools/cmd/goimports
-    go build -o bin/$GOOS-$GOARCH/winch-go-lint golang.org/x/lint/golint
-    go build -o bin/$GOOS-$GOARCH/winch-go-sec github.com/securego/gosec/v2/cmd/gosec
-    go build -o bin/$GOOS-$GOARCH/winch-go-shadow golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
-    go build -o bin/$GOOS-$GOARCH/winch-go-staticcheck honnef.co/go/tools/cmd/staticcheck
 versions:
 - file: version/version_gen.go
   template: version/winch_version.tmpl
-- file: foo.json
-- file: bar.yaml
 release:
   branches:
     only: main
@@ -134,22 +112,22 @@ dockers:
     image: node-14
   branches:
     only: main
-#- dockerfile: Dockerfile
-#  organization: winchci
-#  repository: python
-#  tag: latest
-#  buildargs:
-#    image: python
-#  branches:
-#    only: main
-#- dockerfile: Dockerfile
-#  organization: winchci
-#  repository: java-mvn
-#  tag: latest
-#  buildargs:
-#    image: java-mvn
-#  branches:
-#    only: main
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: python
+  tag: latest
+  buildargs:
+    image: python
+  branches:
+    only: main
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: java-mvn
+  tag: latest
+  buildargs:
+    image: java-mvn
+  branches:
+    only: main
 #- dockerfile: Dockerfile
 #  organization: winchci
 #  repository: scala-sbt

@@ -168,7 +168,6 @@ var (
 			Enabled:  makeBool(true),
 			Template: "!docker_action.tmpl",
 		},
-		Commands: map[string]*RunConfig{},
 		Homebrew: homebrew,
 	}
 
@@ -199,63 +198,6 @@ var (
 		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!go_dockerfile.tmpl",
-		},
-		Commands: map[string]*RunConfig{
-			"update-dep": {
-				Enabled: makeBool(true),
-				Name:    "Update dependencies",
-				Command: "git checkout master && git pull && go get -u ./... && go mod tidy && git add go.* && git commit -m 'chore(deps): upgraded dependencies' && git push",
-			},
-			"format-check": {
-				Enabled: makeBool(true),
-				Name:    "Check format",
-				Command: "[ $(gofmt -l . | wc  -l) -ne 0 ] && exit 1 || exit 0",
-			},
-			"format": {
-				Enabled: makeBool(true),
-				Name:    "Format",
-				Command: "go fmt ./...",
-			},
-			"vet": {
-				Enabled: makeBool(true),
-				Name:    "Vet",
-				Command: "go vet ./...",
-			},
-			"lint-fix": {
-				Enabled: makeBool(true),
-				Name:    "Fix lint",
-				Command: "go fix ./...",
-			},
-			"errcheck": {
-				Enabled: makeBool(true),
-				Name:    "Errcheck",
-				Command: "winch-go-errcheck ./...",
-			},
-			"imports": {
-				Enabled: makeBool(true),
-				Name:    "Import check",
-				Command: "winch-go-imports -d -e . && winch-go-imports -l .",
-			},
-			"lint": {
-				Enabled: makeBool(true),
-				Name:    "Lint",
-				Command: "winch-go-lint -set_exit_status ./...",
-			},
-			"gosec": {
-				Enabled: makeBool(true),
-				Name:    "Gosec",
-				Command: "winch-go-sec ./...",
-			},
-			"shadow": {
-				Enabled: makeBool(true),
-				Name:    "Shadow",
-				Command: "go vet -vettool=$(which winch-go-shadow) ./...",
-			},
-			"staticcheck": {
-				Enabled: makeBool(true),
-				Name:    "Staticcheck",
-				Command: "winch-go-staticcheck ./...",
-			},
 		},
 		Homebrew: homebrew,
 	}
@@ -288,23 +230,6 @@ var (
 		Dockerfile: &TemplateFileConfig{
 			Template: "!node_npm_dockerfile.tmpl",
 		},
-		Commands: map[string]*RunConfig{
-			"update-dep": {
-				Enabled: makeBool(true),
-				Name:    "Update dependencies",
-				Command: "git checkout master && git pull && npm upgrade && git add package*.json && git commit -m 'chore(deps): upgraded dependencies' && git push",
-			},
-			"format": {
-				Enabled: makeBool(true),
-				Name:    "Format",
-				Command: "npm run prettier",
-			},
-			"lint": {
-				Enabled: makeBool(true),
-				Name:    "Check lint",
-				Command: "npm run lint",
-			},
-		},
 		Homebrew: homebrew,
 	}
 
@@ -335,23 +260,6 @@ var (
 		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!node_yarn_dockerfile.tmpl",
-		},
-		Commands: map[string]*RunConfig{
-			"update-dep": {
-				Enabled: makeBool(true),
-				Name:    "Update dependencies",
-				Command: "git checkout master && git pull && yarn upgrade && git add package.json yarn.lock && git commit -m 'chore(deps): upgraded dependencies' && git push",
-			},
-			"format": {
-				Enabled: makeBool(true),
-				Name:    "Format",
-				Command: "npm prettier",
-			},
-			"lint": {
-				Enabled: makeBool(true),
-				Name:    "Check lint",
-				Command: "npm lint",
-			},
 		},
 		Homebrew: homebrew,
 	}
@@ -384,7 +292,6 @@ var (
 		Dockerfile: &TemplateFileConfig{
 			Template: "!java_mvn_dockerfile.tmpl",
 		},
-		Commands: map[string]*RunConfig{},
 		Homebrew: homebrew,
 	}
 
@@ -416,7 +323,6 @@ var (
 		Dockerfile: &TemplateFileConfig{
 			Template: "!scala_sbt_dockerfile.tmpl",
 		},
-		Commands: map[string]*RunConfig{},
 		Homebrew: homebrew,
 	}
 
@@ -443,13 +349,6 @@ var (
 		},
 		Dockerfile: &TemplateFileConfig{
 			Template: "!python_dockerfile.tmpl",
-		},
-		Commands: map[string]*RunConfig{
-			"update-dep": {
-				Enabled: makeBool(true),
-				Name:    "Update dependencies",
-				Command: "git checkout master && git pull && pip install pipupgrade && pipupgrade --verbose --latest --yes && git add requirements.txt && git commit -m 'chore(deps): upgraded dependencies' && git push",
-			},
 		},
 		Homebrew: homebrew,
 	}
