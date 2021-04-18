@@ -29,12 +29,6 @@ homebrew:
   asset: darwin-amd64.tgz
   install: |
     bin.install "winch"
-    bin.install "winch-go-errcheck"
-    bin.install "winch-go-imports"
-    bin.install "winch-go-lint"
-    bin.install "winch-go-sec"
-    bin.install "winch-go-shadow"
-    bin.install "winch-go-staticcheck"
   test: |
     system "#{bin}/winch --version"
   depends_on:
