@@ -4,4 +4,4 @@ See [CONTRIBUTING.md](https://github.com/winchci/winch/blob/master/.github/CONTR
 for general contribution guidelines.
 
 ## Maintainers (in alphabetical order)
-- [sethyates](https://github.com/sethyates), SwitchBit, Inc.
+- [sethyates](https://github.com/sethyates), Ketch Kloud, Inc.

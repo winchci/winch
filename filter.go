@@ -1,6 +1,6 @@
 /*
 winch - Universal Build and Release Tool
-Copyright (C) 2020 Switchbit, Inc.
+Copyright (C) 2021 Ketch Kloud, Inc.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 General Public License as published by the Free Software Foundation, either version 3 of the License,
@@ -60,18 +60,14 @@ func CheckFilters(ctx context.Context, branches *config.FilterConfig, tags *conf
 		return true
 	}
 
-	ci := &CircleCI{}
-	head, err := ci.GetHead(ctx)
+	repository, err := NewGit(ctx, FindGitDir(ctx))
 	if err != nil {
-		repository, err := NewGit(ctx, FindGitDir(ctx))
-		if err != nil {
-			return false
-		}
+		return false
+	}
 
-		head, err = repository.GetHead(ctx)
-		if err != nil {
-			return false
-		}
+	head, err := repository.GetHead(ctx)
+	if err != nil {
+		return false
 	}
 
 	if head.IsBranch() && !CheckFilter(ctx, branches, head.GetName()) {

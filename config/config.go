@@ -1,6 +1,6 @@
 /*
 winch - Universal Build and Release Tool
-Copyright (C) 2020 Switchbit, Inc.
+Copyright (C) 2021 Ketch Kloud, Inc.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 General Public License as published by the Free Software Foundation, either version 3 of the License,
@@ -120,9 +120,6 @@ type Config struct {
 	Dockerfiles   []*TemplateFileConfig        `json:"dockerfiles,omitempty" yaml:"dockerfiles,omitempty"`
 	Homebrew      *HomebrewConfig              `json:"homebrew,omitempty" yaml:"homebrew,omitempty"`
 	Transom       *TransomConfig               `json:"transom,omitempty" yaml:"transom,omitempty"`
-	Database      *DatabaseConfig              `json:"database,omitempty" yaml:"database,omitempty"`
-	Dynamodb      *DynamoDBConfig              `json:"dynamodb,omitempty" yaml:"dynamodb,omitempty"`
-	Vault         *VaultConfig                 `json:"vault,omitempty" yaml:"vault,omitempty"`
 	Docker        *DockerConfig                `json:"docker,omitempty" yaml:"docker,omitempty"`
 	Dockers       []*DockerConfig              `json:"dockers,omitempty" yaml:"dockers,omitempty"`
 	Assets        []*AssetConfig               `json:"assets,omitempty" yaml:"assets,omitempty"`
@@ -134,7 +131,6 @@ type Config struct {
 	AfterPublish  *RunConfig                   `json:"after_publish,omitempty" yaml:"after_publish,omitempty"`
 	Environment   map[string]string            `json:"environment,omitempty" yaml:"environment,omitempty"`
 	Environments  map[string]map[string]string `json:"environments,omitempty" yaml:"environments,omitempty"`
-	Commands      map[string]*RunConfig        `json:"commands,omitempty" yaml:"commands,omitempty"`
 	Scopes        []string                     `json:"scopes,omitempty" yaml:"scopes,omitempty"`
 	Artifacts     []string                     `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
 }
@@ -529,16 +525,6 @@ func LoadConfig(ctx context.Context) (context.Context, error) {
 
 		if len(cfg.Dockerfile.File) == 0 {
 			cfg.Dockerfile.File = defaultConfig.Dockerfile.File
-		}
-	}
-
-	if cfg.Commands == nil {
-		cfg.Commands = make(map[string]*RunConfig)
-	}
-
-	for k, v := range defaultConfig.Commands {
-		if _, ok := cfg.Commands[k]; !ok {
-			cfg.Commands[k] = v
 		}
 	}
 
