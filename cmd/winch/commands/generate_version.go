@@ -19,7 +19,9 @@ package commands
 import (
 	"context"
 	"encoding/json"
+	"encoding/xml"
 	"github.com/spf13/cobra"
+	"github.com/vifraa/gopom"
 	"github.com/winchci/winch"
 	"github.com/winchci/winch/config"
 	"github.com/winchci/winch/templates"
@@ -44,6 +46,29 @@ func writeVersionToFile(cfg *config.Config, file *config.TemplateFileConfig, ver
 	}
 
 	filename := filepath.Join(cfg.BasePath, file.File)
+
+	if filepath.Base(filename) == "VERSION" && len(file.Template) == 0 {
+		file.Template = "!VERSION.tmpl"
+	}
+
+	if filepath.Base(filename) == "pom.xml" {
+		pom, err := gopom.Parse(filename)
+		if err != nil {
+			return err
+		}
+
+		pom.Version = version.Version
+		b, err := xml.MarshalIndent(pom, "", "\t")
+		if err != nil {
+			return err
+		}
+
+		if err = ioutil.WriteFile(filename, b, 0644); err != nil {
+			return err
+		}
+
+		return nil
+	}
 
 	switch filepath.Ext(filename) {
 	case ".json":

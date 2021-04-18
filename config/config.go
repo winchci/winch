@@ -360,7 +360,9 @@ var (
 		Language:  "java",
 		Toolchain: "mvn",
 		Install: &RunConfig{
-			Enabled: makeBool(false),
+			Enabled: makeBool(true),
+			Name:    "Download modules",
+			Command: "mvn install",
 		},
 		Build: &RunConfig{
 			Enabled: makeBool(true),
@@ -373,7 +375,7 @@ var (
 			Command: "mvn test",
 		},
 		Version: &TemplateFileConfig{
-			Enabled: makeBool(false),
+			File: "pom.xml",
 		},
 		GitHubAction: &TemplateFileConfig{
 			Enabled:  makeBool(true),
@@ -390,7 +392,9 @@ var (
 		Language:  "scala",
 		Toolchain: "sbt",
 		Install: &RunConfig{
-			Enabled: makeBool(false),
+			Enabled: makeBool(true),
+			Name:    "Download modules",
+			Command: "sbt install",
 		},
 		Build: &RunConfig{
 			Enabled: makeBool(true),
@@ -419,8 +423,9 @@ var (
 	DefaultPythonConfig = &Config{
 		Language: "python",
 		Install: &RunConfig{
-			Enabled: makeBool(false),
-			Name:    "Install",
+			Enabled: makeBool(true),
+			Name:    "Download modules",
+			Command: "pip install",
 		},
 		Build: &RunConfig{
 			Enabled: makeBool(false),
@@ -429,7 +434,8 @@ var (
 			Enabled: makeBool(false),
 		},
 		Version: &TemplateFileConfig{
-			Enabled: makeBool(false),
+			File:     "version.py",
+			Template: "!version_py.tmpl",
 		},
 		GitHubAction: &TemplateFileConfig{
 			Enabled:  makeBool(true),
