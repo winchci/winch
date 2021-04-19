@@ -327,13 +327,15 @@ var (
 		Install: &RunConfig{
 			Enabled: makeBool(true),
 			Name:    "Download modules",
-			Command: "pip install",
+			Command: "pip install .",
 		},
 		Build: &RunConfig{
 			Enabled: makeBool(false),
 		},
 		Test: &RunConfig{
-			Enabled: makeBool(false),
+			Enabled: makeBool(true),
+			Name:    "Run tests",
+			Command: "python -m unittest -v",
 		},
 		Version: &TemplateFileConfig{
 			File:     "version.py",
