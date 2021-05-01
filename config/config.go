@@ -265,18 +265,23 @@ var (
 		Toolchain: "mvn",
 		Install: &RunConfig{
 			Enabled: makeBool(true),
-			Name:    "Download modules",
-			Command: "mvn install",
+			Name:    "Validate",
+			Command: "mvn -B clean process-resources",
 		},
 		Build: &RunConfig{
 			Enabled: makeBool(true),
 			Name:    "Build",
-			Command: "mvn compile",
+			Command: "mvn -B compile",
 		},
 		Test: &RunConfig{
-			Enabled: makeBool(false),
+			Enabled: makeBool(true),
 			Name:    "Test",
-			Command: "mvn test",
+			Command: "mvn -B test",
+		},
+		Publish: &RunConfig{
+			Enabled: makeBool(true),
+			Name:    "Publish",
+			Command: "mvn -B deploy",
 		},
 		Version: &TemplateFileConfig{
 			File: "pom.xml",
