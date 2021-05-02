@@ -500,6 +500,13 @@ func LoadConfig(ctx context.Context) (context.Context, error) {
 		cfg.Test.Enabled = makeBool(true)
 	}
 
+	if cfg.Publish == nil {
+		cfg.Publish = defaultConfig.Publish
+	}
+	if cfg.Publish.Enabled == nil {
+		cfg.Publish.Enabled = makeBool(true)
+	}
+
 	if cfg.GitHubAction == nil {
 		cfg.GitHubAction = defaultConfig.GitHubAction
 	} else {
