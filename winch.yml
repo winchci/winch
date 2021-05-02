@@ -61,7 +61,23 @@ dockers:
   repository: golang
   tag: latest
   buildargs:
-    image: golang
+    image: golang-16
+  branches:
+    only: main
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: golang-16
+  tag: latest
+  buildargs:
+    image: golang-16
+  branches:
+    only: main
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: golang-15
+  tag: latest
+  buildargs:
+    image: golang-15
   branches:
     only: main
 - dockerfile: Dockerfile
@@ -122,20 +138,36 @@ dockers:
     only: main
 - dockerfile: Dockerfile
   organization: winchci
+  repository: java-15
+  tag: latest
+  buildargs:
+    image: java-15
+  branches:
+    only: main
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: java-11
+  tag: latest
+  buildargs:
+    image: java-11
+  branches:
+    only: main
+- dockerfile: Dockerfile
+  organization: winchci
+  repository: java-8
+  tag: latest
+  buildargs:
+    image: java-8
+  branches:
+    only: main
+- dockerfile: Dockerfile
+  organization: winchci
   repository: java-latest
   tag: latest
   buildargs:
     image: java-16
   branches:
     only: main
-#- dockerfile: Dockerfile
-#  organization: winchci
-#  repository: scala-sbt
-#  tag: latest
-#  buildargs:
-#    image: scala-sbt
-#  branches:
-#    only: main
 environment:
   GO111MODULE: on
   CGO_ENABLED: 0
