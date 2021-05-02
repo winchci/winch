@@ -248,7 +248,8 @@ var (
 			Command: "yarn test",
 		},
 		Version: &TemplateFileConfig{
-			File: "package.json",
+			Enabled: makeBool(true),
+			File:    "package.json",
 		},
 		GitHubAction: &TemplateFileConfig{
 			Enabled:  makeBool(true),
@@ -266,25 +267,25 @@ var (
 		Install: &RunConfig{
 			Enabled: makeBool(true),
 			Name:    "Validate",
-			Command: "mvn -B clean process-resources",
+			Command: "mvn -B -Dbuild.version=${BUILD_VERSION} clean process-resources",
 		},
 		Build: &RunConfig{
 			Enabled: makeBool(true),
 			Name:    "Build",
-			Command: "mvn -B compile",
+			Command: "mvn -B -Dbuild.version=${BUILD_VERSION} compile",
 		},
 		Test: &RunConfig{
 			Enabled: makeBool(true),
 			Name:    "Test",
-			Command: "mvn -B test",
+			Command: "mvn -B -Dbuild.version=${BUILD_VERSION} test",
 		},
 		Publish: &RunConfig{
 			Enabled: makeBool(true),
 			Name:    "Publish",
-			Command: "mvn -B deploy",
+			Command: "mvn -B -Dbuild.version=${BUILD_VERSION} deploy",
 		},
 		Version: &TemplateFileConfig{
-			File: "pom.xml",
+			Enabled: makeBool(false),
 		},
 		GitHubAction: &TemplateFileConfig{
 			Enabled:  makeBool(true),
