@@ -61,23 +61,23 @@ dockers:
   repository: golang
   tag: latest
   buildargs:
-    image: golang-16
+    image: golang-1-16
   branches:
     only: main
 - dockerfile: Dockerfile
   organization: winchci
-  repository: golang-16
+  repository: golang-1-16
   tag: latest
   buildargs:
-    image: golang-16
+    image: golang-1-16
   branches:
     only: main
 - dockerfile: Dockerfile
   organization: winchci
-  repository: golang-15
+  repository: golang-1-15
   tag: latest
   buildargs:
-    image: golang-15
+    image: golang-1-15
   branches:
     only: main
 - dockerfile: Dockerfile
