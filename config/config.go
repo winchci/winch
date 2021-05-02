@@ -503,7 +503,7 @@ func LoadConfig(ctx context.Context) (context.Context, error) {
 	if cfg.Publish == nil {
 		cfg.Publish = defaultConfig.Publish
 	}
-	if cfg.Publish.Enabled == nil {
+	if cfg.Publish != nil && cfg.Publish.Enabled == nil {
 		cfg.Publish.Enabled = makeBool(true)
 	}
 
