@@ -122,10 +122,15 @@ func FindGitDir(_ context.Context) string {
 
 type Branch struct {
 	name string
+	hash string
 }
 
 func (b Branch) GetName() string {
 	return b.name
+}
+
+func (b Branch) GetHash() string {
+	return b.hash
 }
 
 func (b Branch) IsBranch() bool {
@@ -138,10 +143,15 @@ func (b Branch) IsTag() bool {
 
 type Tag struct {
 	name string
+	hash string
 }
 
 func (b Tag) GetName() string {
 	return b.name
+}
+
+func (b Tag) GetHash() string {
+	return b.hash
 }
 
 func (b Tag) IsBranch() bool {
@@ -154,6 +164,7 @@ func (b Tag) IsTag() bool {
 
 type GitRef interface {
 	GetName() string
+	GetHash() string
 	IsBranch() bool
 	IsTag() bool
 }
@@ -165,10 +176,16 @@ func (g Git) GetHead(_ context.Context) (GitRef, error) {
 	}
 
 	if r.Name().IsBranch() {
-		return &Branch{r.Name().Short()}, nil
+		return &Branch{
+			name: r.Name().Short(),
+			hash: r.Hash().String(),
+		}, nil
 	}
 	if r.Name().IsTag() {
-		return &Tag{r.Name().Short()}, nil
+		return &Tag{
+			name: r.Name().Short(),
+			hash: r.Hash().String(),
+		}, nil
 	}
 
 	return nil, fmt.Errorf("unable to determine head ref")

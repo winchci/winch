@@ -84,8 +84,20 @@ func release2(ctx context.Context, cfg *config.Config) error {
 		return err
 	}
 
+	localClient, err := winch.NewGit(ctx, winch.FindGitDir(ctx))
+	if err != nil {
+		return err
+	}
+
+	head, err := localClient.GetHead(ctx)
+	if err != nil {
+		return err
+	}
+
+	targetCommit := head.GetHash()
+
 	fmt.Println("Creating release")
-	rel, err := client.CreateRelease(ctx, tag, body)
+	rel, err := client.CreateRelease(ctx, tag, body, &targetCommit)
 	if err != nil {
 		return err
 	}

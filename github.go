@@ -108,12 +108,12 @@ func (g GitHub) GetCommits(ctx context.Context) ([]*Commit, error) {
 	return commits, nil
 }
 
-func (g GitHub) CreateRelease(ctx context.Context, tag string, body string) (*github.RepositoryRelease, error) {
+func (g GitHub) CreateRelease(ctx context.Context, tag string, body string, ref *string) (*github.RepositoryRelease, error) {
 	rel, _, err := g.client.Repositories.GetReleaseByTag(ctx, g.owner, g.repo, tag)
 	if err != nil {
 		rel, _, err = g.client.Repositories.CreateRelease(ctx, g.owner, g.repo, &github.RepositoryRelease{
 			TagName:         github.String(tag),
-			TargetCommitish: nil,
+			TargetCommitish: ref,
 			Name:            github.String(tag),
 			Body:            github.String(body),
 			Draft:           github.Bool(false),
