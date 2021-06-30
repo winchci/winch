@@ -14,7 +14,7 @@ build:
 
     go build -o bin/$GOOS-$GOARCH/winch ./cmd/winch/main.go
 versions:
-- file: version/version_gen.go
+- file: version/*_gen.go
   template: version/winch_version.tmpl
 release:
   branches:

@@ -23,9 +23,9 @@ jobs:
       with:
         go-version: 1.15
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2.3.4
 
-    - uses: actions/cache@v2.1.5
+    - uses: actions/cache@v2.1.6
       with:
         path: /home/runner/go/pkg/mod
         key: v2-go-mod-${{ hashFiles('go.sum') }}
