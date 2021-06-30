@@ -43,125 +43,136 @@ func writeVersionToFile(cfg *config.Config, file *config.TemplateFileConfig, ver
 		return nil
 	}
 
-	filename := filepath.Join(cfg.BasePath, file.File)
-
-	if filepath.Base(filename) == "VERSION" && len(file.Template) == 0 {
-		file.Template = "!VERSION.tmpl"
+	filenames, err := filepath.Glob(filepath.Join(cfg.BasePath, file.File))
+	if err != nil {
+		return err
 	}
 
-	switch filepath.Ext(filename) {
-	case ".json":
-		b, err := ioutil.ReadFile(filename)
-		if err != nil {
-			b = []byte("{}")
+	for _, filename := range filenames {
+		if filepath.Base(filename) == "VERSION" && len(file.Template) == 0 {
+			file.Template = "!VERSION.tmpl"
 		}
 
-		var j map[string]interface{}
-		err = json.Unmarshal(b, &j)
-		if err != nil {
-			return err
-		}
-
-		path := []string{"version"}
-
-		if file.Variables != nil && len(file.Variables["path"]) > 0 {
-			path = strings.Split(file.Variables["path"], ".")
-		}
-
-		v := j
-		for _, key := range path[0:len(path)-1] {
-			if _, ok := v[key]; !ok {
-				v[key] = make(map[string]interface{})
+		switch filepath.Ext(filename) {
+		case ".json":
+			b, err := ioutil.ReadFile(filename)
+			if err != nil {
+				b = []byte("{}")
 			}
 
-			v = v[key].(map[string]interface{})
-		}
-
-		v[path[len(path)-1]] = strings.TrimPrefix(version.Version, "v")
-
-		b, err = json.MarshalIndent(j, "", "\t")
-		if err != nil {
-			return err
-		}
-
-		return ioutil.WriteFile(filename, b, 0644)
-
-	case ".yaml", ".yml":
-		b, err := ioutil.ReadFile(filename)
-		if err != nil {
-			b = []byte("version:\n")
-		}
-
-		var j map[string]interface{}
-		err = yaml.Unmarshal(b, &j)
-		if err != nil {
-			return err
-		}
-
-		path := []string{"version"}
-
-		if file.Variables != nil && len(file.Variables["path"]) > 0 {
-			path = strings.Split(file.Variables["path"], ".")
-		}
-
-		v := j
-		for _, key := range path[0:len(path)-1] {
-			if _, ok := v[key]; !ok {
-				v[key] = make(map[string]interface{})
+			var j map[string]interface{}
+			err = json.Unmarshal(b, &j)
+			if err != nil {
+				return err
 			}
 
-			v = v[key].(map[string]interface{})
-		}
+			path := []string{"version"}
 
-		v[path[len(path)-1]] = strings.TrimPrefix(version.Version, "v")
+			if file.Variables != nil && len(file.Variables["path"]) > 0 {
+				path = strings.Split(file.Variables["path"], ".")
+			}
 
-		b, err = yaml.Marshal(j)
-		if err != nil {
-			return err
-		}
+			v := j
+			for _, key := range path[0 : len(path)-1] {
+				if _, ok := v[key]; !ok {
+					v[key] = make(map[string]interface{})
+				}
 
-		return ioutil.WriteFile(filename, b, 0644)
+				v = v[key].(map[string]interface{})
+			}
 
-	default:
-		err := os.MkdirAll(filepath.Dir(filename), 0750)
-		if err != nil {
-			return err
-		}
+			v[path[len(path)-1]] = strings.TrimPrefix(version.Version, "v")
 
-		f, err := os.Create(filename)
-		if err != nil {
-			return err
-		}
+			b, err = json.MarshalIndent(j, "", "\t")
+			if err != nil {
+				return err
+			}
 
-		defer f.Close()
+			err = ioutil.WriteFile(filename, b, 0644)
+			if err != nil {
+				return err
+			}
 
-		vars := file.Variables
-		if vars == nil {
-			vars = make(map[string]string)
-		}
-		if _, ok := vars["Name"]; !ok {
-			vars["Name"] = version.Name
-		}
-		if _, ok := vars["Version"]; !ok {
-			vars["Version"] = version.Version
-		}
-		if _, ok := vars["Description"]; !ok {
-			vars["Description"] = version.Description
-		}
-		if _, ok := vars["ReleaseName"]; !ok {
-			vars["ReleaseName"] = version.ReleaseName
-		}
-		if _, ok := vars["Prerelease"]; !ok {
-			vars["Prerelease"] = version.Prerelease
-		}
+		case ".yaml", ".yml":
+			b, err := ioutil.ReadFile(filename)
+			if err != nil {
+				b = []byte("version:\n")
+			}
 
-		err = templates.Load(cfg.BasePath, file.Template).Execute(f, vars)
-		if err != nil {
-			return err
-		}
+			var j map[string]interface{}
+			err = yaml.Unmarshal(b, &j)
+			if err != nil {
+				return err
+			}
 
-		return nil
+			path := []string{"version"}
+
+			if file.Variables != nil && len(file.Variables["path"]) > 0 {
+				path = strings.Split(file.Variables["path"], ".")
+			}
+
+			v := j
+			for _, key := range path[0 : len(path)-1] {
+				if _, ok := v[key]; !ok {
+					v[key] = make(map[string]interface{})
+				}
+
+				v = v[key].(map[string]interface{})
+			}
+
+			v[path[len(path)-1]] = strings.TrimPrefix(version.Version, "v")
+
+			b, err = yaml.Marshal(j)
+			if err != nil {
+				return err
+			}
+
+			err = ioutil.WriteFile(filename, b, 0644)
+			if err != nil {
+				return err
+			}
+
+		default:
+			err := os.MkdirAll(filepath.Dir(filename), 0750)
+			if err != nil {
+				return err
+			}
+
+			f, err := os.Create(filename)
+			if err != nil {
+				return err
+			}
+
+			defer f.Close()
+
+			vars := file.Variables
+			if vars == nil {
+				vars = make(map[string]string)
+			}
+			if _, ok := vars["Name"]; !ok {
+				vars["Name"] = version.Name
+			}
+			if _, ok := vars["Version"]; !ok {
+				vars["Version"] = version.Version
+			}
+			if _, ok := vars["Description"]; !ok {
+				vars["Description"] = version.Description
+			}
+			if _, ok := vars["ReleaseName"]; !ok {
+				vars["ReleaseName"] = version.ReleaseName
+			}
+			if _, ok := vars["Prerelease"]; !ok {
+				vars["Prerelease"] = version.Prerelease
+			}
+
+			err = templates.Load(cfg.BasePath, file.Template).Execute(f, vars)
+			if err != nil {
+				return err
+			}
+		}
 	}
+
+	return nil
 }
 
 func getVersionFromReleases(releases []*winch.Release) (string, string) {
