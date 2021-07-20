@@ -197,7 +197,13 @@ func (d Docker) Publish(ctx context.Context) error {
 	image := fmt.Sprintf("%s/%s/%s", d.cfg.Server, d.cfg.Organization, d.cfg.Repository)
 
 	if d.cfg.Scan == nil || *d.cfg.Scan {
-		err := exec.Command("docker", "scan", "--accept-license", "-f", d.cfg.Dockerfile, "--severity", "medium", image).Run()
+		args := []string{"docker", "scan", "--accept-license", "-f", d.cfg.Dockerfile, "--severity", "medium", image}
+		fmt.Println(strings.Join(args, " "))
+		cmd := exec.Command(args[0], args[1:]...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
 		if err != nil {
 			return err
 		}
