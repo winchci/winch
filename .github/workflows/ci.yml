@@ -13,6 +13,7 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+  SNYK_AUTH_TOKEN: ${{ secrets.SNYK_AUTH_TOKEN }}
 
 jobs:
   build:
