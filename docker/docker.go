@@ -196,9 +196,11 @@ func (d Docker) Build(ctx context.Context, tag string) error {
 func (d Docker) Publish(ctx context.Context) error {
 	image := fmt.Sprintf("%s/%s/%s", d.cfg.Server, d.cfg.Organization, d.cfg.Repository)
 
-	err := exec.Command("docker", "scan", "-f", d.cfg.Dockerfile, "--severity", "medium", image).Run()
-	if err != nil {
-		return err
+	if d.cfg.Scan == nil || *d.cfg.Scan {
+		err := exec.Command("docker", "scan", "--accept-license", "-f", d.cfg.Dockerfile, "--severity", "medium", image).Run()
+		if err != nil {
+			return err
+		}
 	}
 
 	resp, err := d.client.ImagePush(ctx, image, types.ImagePushOptions{
