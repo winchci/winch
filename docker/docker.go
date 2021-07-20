@@ -26,6 +26,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 
@@ -193,7 +194,14 @@ func (d Docker) Build(ctx context.Context, tag string) error {
 }
 
 func (d Docker) Publish(ctx context.Context) error {
-	resp, err := d.client.ImagePush(ctx, fmt.Sprintf("%s/%s/%s", d.cfg.Server, d.cfg.Organization, d.cfg.Repository), types.ImagePushOptions{
+	image := fmt.Sprintf("%s/%s/%s", d.cfg.Server, d.cfg.Organization, d.cfg.Repository)
+
+	err := exec.Command("docker", "scan", "-f", d.cfg.Dockerfile, "--severity", "medium", image).Run()
+	if err != nil {
+		return err
+	}
+
+	resp, err := d.client.ImagePush(ctx, image, types.ImagePushOptions{
 		RegistryAuth: d.token,
 		All:          true,
 	})
