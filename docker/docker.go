@@ -197,8 +197,17 @@ func (d Docker) Publish(ctx context.Context) error {
 	image := fmt.Sprintf("%s/%s/%s", d.cfg.Server, d.cfg.Organization, d.cfg.Repository)
 
 	if d.cfg.Scan == nil || *d.cfg.Scan {
+		snykAuthToken := os.Getenv("SNYK_AUTH_TOKEN")
+
 		args := []string{"docker", "scan", "--accept-license", "--login"}
-		fmt.Println(strings.Join(args, " "))
+		if len(snykAuthToken) > 0 {
+			fmt.Println(strings.Join(append(args, "--token", "*****"), " "))
+
+			args = append(args, "--token", snykAuthToken)
+		} else {
+			fmt.Println(strings.Join(args, " "))
+		}
+
 		cmd := exec.Command(args[0], args[1:]...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
