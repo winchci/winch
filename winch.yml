@@ -13,8 +13,6 @@ build:
     mkdir -p bin/$GOOS-$GOARCH
 
     go build -o bin/$GOOS-$GOARCH/winch ./cmd/winch/main.go
-
-    cp docker/entrypoint.sh bin/
 versions:
 - file: version/*_gen.go
   template: version/winch_version.tmpl
