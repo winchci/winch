@@ -13,6 +13,8 @@ build:
     mkdir -p bin/$GOOS-$GOARCH
 
     go build -o bin/$GOOS-$GOARCH/winch ./cmd/winch/main.go
+
+    cp docker/entrypoint.sh bin/
 versions:
 - file: version/*_gen.go
   template: version/winch_version.tmpl
@@ -48,124 +50,67 @@ assets:
   only:
     - "/*.txt"
 dockers:
-- dockerfile: Dockerfile
+- dockerfile: docker/base/Dockerfile
   organization: winchci
   repository: winch
   tag: latest
-  buildargs:
-    image: base
+  context: .
   branches:
     only: main
-- dockerfile: Dockerfile
+- dockerfile: docker/go/1.16/Dockerfile
   organization: winchci
   repository: golang
   tag: latest
-  buildargs:
-    image: golang-1-16
+  context: .
   branches:
     only: main
-- dockerfile: Dockerfile
+- dockerfile: docker/go/1.16/Dockerfile
   organization: winchci
   repository: golang-1-16
   tag: latest
-  buildargs:
-    image: golang-1-16
+  context: .
   branches:
     only: main
-- dockerfile: Dockerfile
+- dockerfile: docker/go/1.15/Dockerfile
   organization: winchci
   repository: golang-1-15
   tag: latest
-  buildargs:
-    image: golang-1-15
+  context: .
   branches:
     only: main
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: node-13
-  tag: latest
-  buildargs:
-    image: node-13
-  branches:
-    only: main
-- dockerfile: Dockerfile
+- dockerfile: docker/node/14/Dockerfile
   organization: winchci
   repository: node-14
   tag: latest
-  buildargs:
-    image: node-14
+  context: .
   branches:
     only: main
-- dockerfile: Dockerfile
+- dockerfile: docker/node/15/Dockerfile
   organization: winchci
   repository: node-15
   tag: latest
-  buildargs:
-    image: node-15
+  context: .
   branches:
     only: main
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: node-latest
-  tag: latest
-  buildargs:
-    image: node-15
-  branches:
-    only: main
-- dockerfile: Dockerfile
+- dockerfile: docker/node/14/Dockerfile
   organization: winchci
   repository: node-lts
   tag: latest
-  buildargs:
-    image: node-14
+  context: .
   branches:
     only: main
-- dockerfile: Dockerfile
+- dockerfile: docker/node/15/Dockerfile
+  organization: winchci
+  repository: node-latest
+  tag: latest
+  context: .
+  branches:
+    only: main
+- dockerfile: docker/python/3.9/Dockerfile
   organization: winchci
   repository: python
   tag: latest
-  buildargs:
-    image: python
-  branches:
-    only: main
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: java-16
-  tag: latest
-  buildargs:
-    image: java-16
-  branches:
-    only: main
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: java-15
-  tag: latest
-  buildargs:
-    image: java-15
-  branches:
-    only: main
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: java-11
-  tag: latest
-  buildargs:
-    image: java-11
-  branches:
-    only: main
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: java-8
-  tag: latest
-  buildargs:
-    image: java-8
-  branches:
-    only: main
-- dockerfile: Dockerfile
-  organization: winchci
-  repository: java-latest
-  tag: latest
-  buildargs:
-    image: java-16
+  context: .
   branches:
     only: main
 environment:

@@ -33,13 +33,14 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/mholt/archiver/v3"
-	"github.com/winchci/winch/config"
+	"github.com/winchci/winch/pkg/config"
 	"github.com/winchci/winch/version"
 )
 
 type dockerErrorMsg struct {
 	Message string `json:"message"`
 }
+
 type dockerMsg struct {
 	Status      string         `json:"status"`
 	Message     string         `json:"stream"`

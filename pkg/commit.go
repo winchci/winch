@@ -14,32 +14,37 @@ You should have received a copy of the GNU General Public License along with thi
 see <https://www.gnu.org/licenses/>.
 */
 
-package winch
+package pkg
 
-import "testing"
+import (
+	"context"
+	"time"
+)
 
-func TestParseMessage(t *testing.T) {
-	m := ParseMessage("fix!(tls): enable TLS by default\n\nbody\n\nmore body\n\nBREAKING CHANGE: something is broken now")
-	if !m.IsBreaking {
-		t.Fail()
-	}
-	if m.Type != NewType("fix") {
-		t.Fail()
-	}
-	if m.Subject != "enable TLS by default" {
-		t.Fail()
-	}
-	if m.Scope != "tls" {
-		t.Fail()
-	}
-	if m.BreakingMessage != "something is broken now" {
-		t.Fail()
-	}
+type Commit struct {
+	Hash         string
+	PreviousHash string
+	NextHash     string
+	When         time.Time
+	Message      *Message
+	Tag          string
 }
 
-func TestCarriageReturn(t *testing.T) {
-	m := ParseMessage("User WIP (#18)\n\n* ses wip\r\n\r\n* ses wip\r\n\r\n* User wip")
-	if m.Subject != "User WIP (#18)" {
-		t.Fail()
+func (c Commit) ShortHash() string {
+	return c.Hash[0:8]
+}
+
+func (c Commit) Title() string {
+	return c.Message.Title()
+}
+
+func TagCommits(_ context.Context, commits []*Commit, tags map[string]string) {
+	var lastTag string
+	for _, c := range commits {
+		c.Tag = tags[c.Hash]
+		if len(c.Tag) == 0 {
+			c.Tag = lastTag
+		}
+		lastTag = c.Tag
 	}
 }

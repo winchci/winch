@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/spf13/cobra"
-	"github.com/winchci/winch"
+	winch "github.com/winchci/winch/pkg"
 )
 
 func name(ctx context.Context, args []string) error {

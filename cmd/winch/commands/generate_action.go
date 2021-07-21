@@ -19,7 +19,7 @@ package commands
 import (
 	"context"
 	"github.com/spf13/cobra"
-	"github.com/winchci/winch/config"
+	"github.com/winchci/winch/pkg/config"
 	"github.com/winchci/winch/templates"
 	"os"
 	"path/filepath"
