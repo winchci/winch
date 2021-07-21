@@ -19,8 +19,8 @@ package commands
 import (
 	"context"
 	"github.com/spf13/cobra"
-	"github.com/winchci/winch"
-	"github.com/winchci/winch/config"
+	winch "github.com/winchci/winch/pkg"
+	"github.com/winchci/winch/pkg/config"
 )
 
 func build(ctx context.Context) error {

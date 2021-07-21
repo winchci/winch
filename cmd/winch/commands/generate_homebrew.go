@@ -22,7 +22,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/spf13/cobra"
-	"github.com/winchci/winch/config"
+	"github.com/winchci/winch/pkg/config"
 	"github.com/winchci/winch/templates"
 	"io/ioutil"
 	"net/http"

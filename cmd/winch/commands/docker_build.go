@@ -20,8 +20,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/spf13/cobra"
-	"github.com/winchci/winch/config"
-	"github.com/winchci/winch/docker"
+	"github.com/winchci/winch/pkg/config"
+	"github.com/winchci/winch/pkg/docker"
 	"time"
 )
 

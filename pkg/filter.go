@@ -14,14 +14,14 @@ You should have received a copy of the GNU General Public License along with thi
 see <https://www.gnu.org/licenses/>.
 */
 
-package winch
+package pkg
 
 import (
 	"context"
 	"regexp"
 	"strings"
 
-	"github.com/winchci/winch/config"
+	"github.com/winchci/winch/pkg/config"
 )
 
 func getFilterRegexp(in string) (*regexp.Regexp, error) {

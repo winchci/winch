@@ -28,7 +28,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/winchci/winch/config"
+	"github.com/winchci/winch/pkg/config"
 )
 
 type LoginRequest struct {
