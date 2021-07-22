@@ -218,7 +218,7 @@ func (d Docker) Publish(ctx context.Context) error {
 			return err
 		}
 
-		args = []string{"docker", "scan", "--accept-license", "-f", d.cfg.Dockerfile, "--severity", "medium", image}
+		args = []string{"docker", "scan", "--accept-license", "--severity", "medium", image}
 		fmt.Println(strings.Join(args, " "))
 		cmd = exec.Command(args[0], args[1:]...)
 		cmd.Stdout = os.Stdout
