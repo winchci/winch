@@ -196,10 +196,9 @@ func (d Docker) Build(ctx context.Context, tag string) error {
 
 func (d Docker) Publish(ctx context.Context) error {
 	image := fmt.Sprintf("%s/%s/%s", d.cfg.Server, d.cfg.Organization, d.cfg.Repository)
+	snykAuthToken := os.Getenv("SNYK_AUTH_TOKEN")
 
-	if d.cfg.Scan == nil || *d.cfg.Scan {
-		snykAuthToken := os.Getenv("SNYK_AUTH_TOKEN")
-
+	if (d.cfg.Scan == nil || *d.cfg.Scan) && len(snykAuthToken) > 0 {
 		args := []string{"docker", "scan", "--accept-license", "--login"}
 		if len(snykAuthToken) > 0 {
 			fmt.Println(strings.Join(append(args, "--token", "*****"), " "))
