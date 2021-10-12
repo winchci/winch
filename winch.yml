@@ -76,23 +76,9 @@ dockers:
   context: .
   branches:
     only: main
-- dockerfile: docker/node/14/Dockerfile
-  organization: winchci
-  repository: node-14
-  tag: latest
-  context: .
-  branches:
-    only: main
 - dockerfile: docker/node/16/Dockerfile
   organization: winchci
   repository: node-16
-  tag: latest
-  context: .
-  branches:
-    only: main
-- dockerfile: docker/node/14/Dockerfile
-  organization: winchci
-  repository: node-lts
   tag: latest
   context: .
   branches:
