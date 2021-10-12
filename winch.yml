@@ -83,9 +83,9 @@ dockers:
   context: .
   branches:
     only: main
-- dockerfile: docker/node/15/Dockerfile
+- dockerfile: docker/node/16/Dockerfile
   organization: winchci
-  repository: node-15
+  repository: node-16
   tag: latest
   context: .
   branches:
@@ -97,7 +97,7 @@ dockers:
   context: .
   branches:
     only: main
-- dockerfile: docker/node/15/Dockerfile
+- dockerfile: docker/node/16/Dockerfile
   organization: winchci
   repository: node-latest
   tag: latest

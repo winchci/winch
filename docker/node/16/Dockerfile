@@ -1,4 +1,4 @@
-FROM node:14-alpine
+FROM node:16-alpine
 ENV DOCKER_CONFIG /etc/docker
 RUN apk add --update --no-cache curl docker python3 alpine-sdk
 RUN mkdir -p $DOCKER_CONFIG/cli-plugins && \
