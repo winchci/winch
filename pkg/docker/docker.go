@@ -196,6 +196,13 @@ func (d Docker) Build(ctx context.Context, cfg *config.Config, tag string) error
 		BuildArgs:  d.cfg.BuildArgs,
 		Labels:     d.cfg.Labels,
 		Target:     d.cfg.Target,
+		AuthConfigs: map[string]types.AuthConfig{
+			d.cfg.Server: {
+				Username:      d.cfg.Username,
+				Password:      d.cfg.Password,
+				ServerAddress: d.cfg.Server,
+			},
+		},
 	})
 	if err != nil {
 		return err
