@@ -121,7 +121,7 @@ func publish2(ctx context.Context, cfg *config.Config) error {
 			}
 
 			fmt.Printf("Building Docker image %s/%s\n", dockerConfig.Organization, dockerConfig.Repository)
-			err = d.Build(ctx, version)
+			err = d.Build(ctx, cfg, version)
 			if err != nil {
 				return err
 			}

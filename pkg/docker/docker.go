@@ -29,6 +29,7 @@ import (
 	"os/exec"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -147,7 +148,7 @@ func (d *Docker) Login(ctx context.Context) error {
 	return nil
 }
 
-func (d Docker) Build(ctx context.Context, tag string) error {
+func (d Docker) Build(ctx context.Context, cfg *config.Config, tag string) error {
 	dir, err := ioutil.TempDir("", version.Name)
 	if err != nil {
 		return err
@@ -179,6 +180,15 @@ func (d Docker) Build(ctx context.Context, tag string) error {
 	} else {
 		tags = append(tags, fmt.Sprintf("%s:%s", baseTag, tag))
 	}
+
+	if d.cfg.Labels == nil {
+		d.cfg.Labels = make(map[string]string)
+	}
+	d.cfg.Labels["org.opencontainers.image.source"] = cfg.Repository
+	d.cfg.Labels["org.opencontainers.image.created"] = time.Now().UTC().Format(time.RFC3339)
+	d.cfg.Labels["org.opencontainers.image.version"] = tag
+	d.cfg.Labels["org.opencontainers.image.title"] = cfg.Name
+	d.cfg.Labels["org.opencontainers.image.description"] = cfg.Description
 
 	resp, err := d.client.ImageBuild(ctx, f, types.ImageBuildOptions{
 		Tags:       tags,
