@@ -24,6 +24,7 @@ import (
 	"github.com/winchci/winch/pkg/config"
 	"github.com/winchci/winch/templates"
 	"mime"
+	"os"
 )
 
 func release(ctx context.Context) error {
@@ -104,6 +105,7 @@ func release2(ctx context.Context, cfg *config.Config) error {
 
 	fmt.Println("Uploading assets")
 	for _, artifact := range cfg.Release.Artifacts {
+		artifact = os.ExpandEnv(artifact)
 		err = client.UploadAsset(ctx, rel.GetID(), artifact)
 		if err != nil {
 			return err
