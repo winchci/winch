@@ -28,6 +28,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -113,7 +114,7 @@ func NewDocker(cfg *config.DockerConfig, name string) (*Docker, error) {
 	cfg.Username = os.ExpandEnv(cfg.Username)
 	cfg.Password = os.ExpandEnv(cfg.Password)
 
-	c, err := client.NewEnvClient()
+	c, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		return nil, err
 	}
@@ -190,19 +191,18 @@ func (d Docker) Build(ctx context.Context, cfg *config.Config, tag string) error
 	d.cfg.Labels["org.opencontainers.image.title"] = cfg.Name
 	d.cfg.Labels["org.opencontainers.image.description"] = cfg.Description
 
+	c, err := d.loadConfig()
+	if err != nil {
+		return err
+	}
+
 	resp, err := d.client.ImageBuild(ctx, f, types.ImageBuildOptions{
-		Tags:       tags,
-		Dockerfile: d.cfg.Dockerfile,
-		BuildArgs:  d.cfg.BuildArgs,
-		Labels:     d.cfg.Labels,
-		Target:     d.cfg.Target,
-		AuthConfigs: map[string]types.AuthConfig{
-			d.cfg.Server: {
-				Username:      d.cfg.Username,
-				Password:      d.cfg.Password,
-				ServerAddress: d.cfg.Server,
-			},
-		},
+		Tags:        tags,
+		Dockerfile:  d.cfg.Dockerfile,
+		BuildArgs:   d.cfg.BuildArgs,
+		Labels:      d.cfg.Labels,
+		Target:      d.cfg.Target,
+		AuthConfigs: c.Auths,
 	})
 	if err != nil {
 		return err
@@ -257,6 +257,40 @@ func (d Docker) Publish(ctx context.Context) error {
 	defer resp.Close()
 
 	return printDockerResponse(resp)
+}
+
+type dockerConfig struct {
+	Auths map[string]types.AuthConfig `json:"auths"`
+}
+
+func (d Docker) loadConfig() (*dockerConfig, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+
+	filename := filepath.Join(home, ".docker", "config.json")
+
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	defer f.Close()
+
+	cfg := &dockerConfig{}
+	err = json.NewDecoder(f).Decode(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg.Auths[d.cfg.Server] = types.AuthConfig{
+		Username:      d.cfg.Username,
+		Password:      d.cfg.Password,
+		ServerAddress: d.cfg.Server,
+	}
+
+	return cfg, nil
 }
 
 func printDockerResponse(body io.ReadCloser) error {
