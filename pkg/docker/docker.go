@@ -275,7 +275,7 @@ func (d Docker) loadConfig() (*dockerConfig, error) {
 	if err != nil {
 		filename = filepath.Join("/etc", "docker", "config.json")
 
-		f, err = os.Open(filename)
+		f, _ = os.Open(filename)
 	}
 
 	cfg := &dockerConfig{
@@ -287,6 +287,23 @@ func (d Docker) loadConfig() (*dockerConfig, error) {
 		err = json.NewDecoder(f).Decode(cfg)
 		if err != nil {
 			return nil, err
+		}
+	}
+
+	for k, v := range cfg.Auths {
+		if len(v.Auth) > 0 {
+			b, err := base64.StdEncoding.DecodeString(v.Auth)
+			if err != nil {
+				return nil, err
+			}
+
+			parts := strings.Split(string(b), ":")
+			if len(parts) >= 2 {
+				cfg.Auths[k] = types.AuthConfig{
+					Username: parts[0],
+					Password: parts[1],
+				}
+			}
 		}
 	}
 
