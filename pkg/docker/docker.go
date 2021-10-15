@@ -273,15 +273,21 @@ func (d Docker) loadConfig() (*dockerConfig, error) {
 
 	f, err := os.Open(filename)
 	if err != nil {
-		return nil, err
+		filename = filepath.Join("/etc", "docker", "config.json")
+
+		f, err = os.Open(filename)
 	}
 
-	defer f.Close()
+	cfg := &dockerConfig{
+		Auths: make(map[string]types.AuthConfig),
+	}
 
-	cfg := &dockerConfig{}
-	err = json.NewDecoder(f).Decode(cfg)
-	if err != nil {
-		return nil, err
+	if f != nil {
+		defer f.Close()
+		err = json.NewDecoder(f).Decode(cfg)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	cfg.Auths[d.cfg.Server] = types.AuthConfig{
