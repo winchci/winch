@@ -6,7 +6,7 @@ require (
 	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/containerd/containerd v1.5.7 // indirect
 	github.com/coreos/go-semver v0.3.0
-	github.com/docker/docker v20.10.9+incompatible
+	github.com/docker/docker v20.10.10+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/golang/protobuf v1.5.2
 	github.com/golang/snappy v0.0.4 // indirect
