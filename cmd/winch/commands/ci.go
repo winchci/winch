@@ -133,9 +133,13 @@ func ci(ctx context.Context) error {
 	var version, prerelease string
 
 	cmd := config.CommandFromContext(ctx)
-	if ok, err := cmd.Flags().GetBool("incremental"); err != nil {
+
+	incremental, err := cmd.Flags().GetBool("incremental")
+	if err != nil {
 		return err
-	} else if !ok {
+	}
+
+	if !incremental {
 		releases, commits, err := makeReleases(ctx, cfg)
 		if err != nil {
 			return err
@@ -253,7 +257,7 @@ func ci(ctx context.Context) error {
 		}
 	}
 
-	if cfg.Release.IsEnabled() {
+	if cfg.Release.IsEnabled() && !incremental {
 		fmt.Println("Releasing")
 		err = release2(ctx, cfg)
 		if err != nil {
