@@ -88,18 +88,16 @@ func (g Git) GetCommits(_ context.Context) ([]*Commit, error) {
 
 	var commits []*Commit
 	err = l.ForEach(func(c *object.Commit) error {
-		it, err := c.Files()
+		stats, err := c.Stats()
 		if err != nil {
 			return err
 		}
 
 		affectedPaths := make(map[string]bool)
-		err = it.ForEach(func(f *object.File) error {
-			affectedPaths[strings.Split(f.Name, "/")[0]] = true
-			return nil
-		})
-		if err != nil {
-			return err
+		for _, stat := range stats {
+			if stat.Addition > 0 || stat.Deletion > 0 {
+				affectedPaths[strings.Split(stat.Name, "/")[0]] = true
+			}
 		}
 
 		commit := &Commit{
