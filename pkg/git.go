@@ -88,11 +88,31 @@ func (g Git) GetCommits(_ context.Context) ([]*Commit, error) {
 
 	var commits []*Commit
 	err = l.ForEach(func(c *object.Commit) error {
-		commits = append(commits, &Commit{
+		it, err := c.Files()
+		if err != nil {
+			return err
+		}
+
+		affectedPaths := make(map[string]bool)
+		err = it.ForEach(func(f *object.File) error {
+			affectedPaths[strings.Split(f.Name, "/")[0]] = true
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
+		commit := &Commit{
 			Hash:    c.Hash.String(),
 			When:    c.Author.When,
 			Message: ParseMessage(strings.TrimSpace(c.Message)),
-		})
+		}
+
+		for affectedPath := range affectedPaths {
+			commit.AffectedPaths = append(commit.AffectedPaths, affectedPath)
+		}
+
+		commits = append(commits, commit)
 		return nil
 	})
 	if err != nil {

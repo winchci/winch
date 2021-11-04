@@ -83,7 +83,7 @@ func generateGithubAction(ctx context.Context) error {
 
 	cmd := config.CommandFromContext(ctx)
 
-	releases, err := makeReleases(ctx, cfg)
+	releases, _, err := makeReleases(ctx, cfg)
 	if err != nil {
 		return err
 	}

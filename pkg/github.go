@@ -98,11 +98,22 @@ func (g GitHub) GetCommits(ctx context.Context) ([]*Commit, error) {
 	}
 
 	for _, commit := range c {
-		commits = append(commits, &Commit{
+		affectedPaths := make(map[string]bool)
+		for _, file := range commit.Files {
+			affectedPaths[strings.Split(*file.Filename, "/")[0]] = true
+		}
+
+		com := &Commit{
 			Hash:    commit.GetSHA(),
 			When:    commit.GetCommit().GetAuthor().GetDate(),
 			Message: ParseMessage(strings.TrimSpace(commit.GetCommit().GetMessage())),
-		})
+		}
+
+		for affectedPath := range affectedPaths {
+			com.AffectedPaths = append(com.AffectedPaths, affectedPath)
+		}
+
+		commits = append(commits, com)
 	}
 
 	return commits, nil

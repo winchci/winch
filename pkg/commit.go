@@ -22,12 +22,13 @@ import (
 )
 
 type Commit struct {
-	Hash         string
-	PreviousHash string
-	NextHash     string
-	When         time.Time
-	Message      *Message
-	Tag          string
+	Hash          string
+	PreviousHash  string
+	NextHash      string
+	When          time.Time
+	Message       *Message
+	Tag           string
+	AffectedPaths []string
 }
 
 func (c Commit) ShortHash() string {

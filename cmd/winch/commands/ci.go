@@ -47,15 +47,25 @@ func monoBuild(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, jobs
 }
 
 func simple(ctx context.Context, cfg *config.Config, job Job) error {
-	c := exec.Command("winch", "ci", "-f", job.Filename)
+	c := exec.Command("winch", "ci", "--incremental", "-f", job.Filename)
 	c.Dir = job.Dir
 	c.Stdout = winch.NewLogTailer(os.Stdout, fmt.Sprintf("%s |", winch.ColorName(winch.PadName(job.Dir, 12))))
 	c.Stderr = winch.NewLogTailer(os.Stderr, fmt.Sprintf("%s |", winch.ColorName(winch.PadName(job.Dir, 12))))
 	return c.Run()
 }
 
-func mono(ctx context.Context, cfg *config.Config) error {
+func mono(ctx context.Context, cfg *config.Config, commits []*winch.Commit) error {
 	fmt.Println("Starting an incremental build on monorepo")
+	fmt.Printf("Parallelism: %d\n", cfg.Parallelism)
+
+	affectedPaths := make(map[string]bool)
+	for _, commit := range commits {
+		if len(commit.Tag) == 0 {
+			for _, affectedPath := range commit.AffectedPaths {
+				affectedPaths[affectedPath] = true
+			}
+		}
+	}
 
 	files, err := filepath.Glob("*/winch.yml")
 	if err != nil {
@@ -76,12 +86,14 @@ func mono(ctx context.Context, cfg *config.Config) error {
 	}
 
 	for _, file := range files {
-		job := Job{
-			Dir:      filepath.Dir(file),
-			Filename: filepath.Base(file),
-		}
+		if affectedPaths[filepath.Dir(file)] {
+			job := Job{
+				Dir:      filepath.Dir(file),
+				Filename: filepath.Base(file),
+			}
 
-		C <- job
+			C <- job
+		}
 	}
 	close(C)
 
@@ -114,36 +126,57 @@ func ci(ctx context.Context) error {
 	cfg.Verbose = true
 	cfg.Quiet = false
 
-	releases, err := makeReleases(ctx, cfg)
-	if err != nil {
+	var version, prerelease string
+
+	cmd := config.CommandFromContext(ctx)
+	if ok, err := cmd.Flags().GetBool("incremental"); err != nil {
 		return err
-	}
-
-	version, prerelease := getVersionFromReleases(releases)
-	fmt.Printf("Version: %s\n", version)
-	fmt.Printf("Prerelease: %s\n", prerelease)
-
-	err = os.Setenv("BUILD_VERSION", version)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Creating version")
-	err = writeVersion(cfg, version, prerelease)
-	if err != nil {
-		return err
-	}
-
-	if cfg.Changelog.IsEnabled() {
-		fmt.Println("Creating changelog")
-		err = writeChangelog(ctx, cfg, releases)
+	} else if !ok {
+		releases, commits, err := makeReleases(ctx, cfg)
 		if err != nil {
 			return err
 		}
-	}
 
-	if cfg.Mono {
-		err = mono(ctx, cfg)
+		version, prerelease = getVersionFromReleases(releases)
+		fmt.Printf("Version: %s\n", version)
+		fmt.Printf("Prerelease: %s\n", prerelease)
+
+		err = os.Setenv("BUILD_VERSION", version)
+		if err != nil {
+			return err
+		}
+
+		err = os.Setenv("BUILD_PRERELEASE", prerelease)
+		if err != nil {
+			return err
+		}
+
+		if cfg.Changelog.IsEnabled() {
+			fmt.Println("Creating changelog")
+			err = writeChangelog(ctx, cfg, releases)
+			if err != nil {
+				return err
+			}
+		}
+
+		fmt.Println("Creating version")
+		err = writeVersion(cfg, version, prerelease)
+		if err != nil {
+			return err
+		}
+
+		if cfg.Mono {
+			err = mono(ctx, cfg, commits)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		version = os.Getenv("BUILD_VERSION")
+		prerelease = os.Getenv("BUILD_PRERELEASE")
+
+		fmt.Println("Creating version")
+		err = writeVersion(cfg, version, prerelease)
 		if err != nil {
 			return err
 		}
@@ -239,6 +272,8 @@ func init() {
 		Run:   Runner(ci),
 		Args:  cobra.NoArgs,
 	}
+
+	cmd.Flags().Bool("incremental", false, "perform an incremental build")
 
 	rootCmd.AddCommand(cmd)
 }

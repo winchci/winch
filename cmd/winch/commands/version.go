@@ -31,7 +31,7 @@ func showVersion(ctx context.Context) error {
 
 	cfg := config.ConfigFromContext(ctx)
 
-	releases, err := makeReleases(ctx, cfg)
+	releases, _, err := makeReleases(ctx, cfg)
 	if err != nil {
 		return err
 	}

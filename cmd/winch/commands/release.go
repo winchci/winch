@@ -56,7 +56,7 @@ func release2(ctx context.Context, cfg *config.Config) error {
 		}
 	}
 
-	releases, err := makeReleases(ctx, cfg)
+	releases, _, err := makeReleases(ctx, cfg)
 	if err != nil {
 		return err
 	}

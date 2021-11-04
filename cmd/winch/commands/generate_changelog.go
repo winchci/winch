@@ -47,7 +47,7 @@ func writeChangelog(ctx context.Context, cfg *config.Config, rel []*winch.Releas
 	return nil
 }
 
-func makeReleases(ctx context.Context, cfg *config.Config) ([]*winch.Release, error) {
+func makeReleases(ctx context.Context, cfg *config.Config) ([]*winch.Release, []*winch.Commit, error) {
 	var g winch.Repository
 	var err error
 
@@ -57,27 +57,27 @@ func makeReleases(ctx context.Context, cfg *config.Config) ([]*winch.Release, er
 		g, err = winch.NewGitHub(ctx, cfg.Repository)
 	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	tags, err := g.GetTags(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	commits, err := g.GetCommits(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	winch.TagCommits(ctx, commits, tags)
 
 	releases, err := winch.MakeReleases(ctx, commits, true)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return releases, err
+	return releases, commits, err
 }
 
 func generateChangelog(ctx context.Context) error {
@@ -90,7 +90,7 @@ func generateChangelog(ctx context.Context) error {
 
 	cmd := config.CommandFromContext(ctx)
 
-	releases, err := makeReleases(ctx, cfg)
+	releases, _, err := makeReleases(ctx, cfg)
 	if err != nil {
 		return err
 	}

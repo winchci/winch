@@ -589,6 +589,11 @@ func LoadConfig(ctx context.Context) (context.Context, error) {
 		}
 	}
 
+	// Force git if a monorepo
+	if cfg.Mono {
+		cfg.Local = true
+	}
+
 	return AddConfigToContext(ctx, cfg), nil
 }
 

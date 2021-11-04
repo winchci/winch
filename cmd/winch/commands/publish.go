@@ -67,7 +67,7 @@ func publish2(ctx context.Context, cfg *config.Config) error {
 		return err
 	}
 
-	releases, err := makeReleases(ctx, cfg)
+	releases, _, err := makeReleases(ctx, cfg)
 	if err != nil {
 		return err
 	}
