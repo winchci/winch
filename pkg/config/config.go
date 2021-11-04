@@ -100,6 +100,8 @@ type Config struct {
 	Local         bool                         `json:"local,omitempty" yaml:"local,omitempty"`
 	Verbose       bool                         `json:"verbose,omitempty" yaml:"verbose,omitempty"`
 	Quiet         bool                         `json:"quiet,omitempty" yaml:"quiet,omitempty"`
+	Mono          bool                         `json:"mono,omitempty" yaml:"mono,omitempty"`
+	Parallelism   int                          `json:"arallelism,omitempty" yaml:"parallelism,omitempty"`
 	Language      string                       `json:"language,omitempty" yaml:"language,omitempty"`
 	Toolchain     string                       `json:"toolchain,omitempty" yaml:"toolchain,omitempty"`
 	CI            *CIConfig                    `json:"ci,omitempty" yaml:"ci,omitempty"`
@@ -144,6 +146,26 @@ var (
 	homebrew = &HomebrewConfig{
 		Template: "!brew.tmpl",
 		File:     "formula.rb",
+	}
+
+	DefaultMonoConfig = &Config{
+		Language: "mono",
+		Install: &RunConfig{
+			Enabled: makeBool(false),
+		},
+		Build: &RunConfig{
+			Enabled: makeBool(false),
+		},
+		Test: &RunConfig{
+			Enabled: makeBool(false),
+		},
+		Version: &TemplateFileConfig{
+			Enabled: makeBool(false),
+		},
+		GitHubAction: &TemplateFileConfig{
+			Enabled:  makeBool(false),
+		},
+		Homebrew: homebrew,
 	}
 
 	DefaultDockerConfig = &Config{
@@ -473,9 +495,13 @@ func LoadConfig(ctx context.Context) (context.Context, error) {
 		defaultConfig = DefaultDockerConfig
 
 	default:
-		defaultConfig = DefaultGoConfig
-		if dirExists("cmd") && fileExists(fmt.Sprintf("cmd/%s/main.go", cfg.Name)) {
-			defaultConfig.Build.Command = fmt.Sprintf("go build -o bin/%s ./cmd/%s/main.go", cfg.Name, cfg.Name)
+		if cfg.Mono {
+			defaultConfig = DefaultMonoConfig
+		} else {
+			defaultConfig = DefaultGoConfig
+			if dirExists("cmd") && fileExists(fmt.Sprintf("cmd/%s/main.go", cfg.Name)) {
+				defaultConfig.Build.Command = fmt.Sprintf("go build -o bin/%s ./cmd/%s/main.go", cfg.Name, cfg.Name)
+			}
 		}
 	}
 

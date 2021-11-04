@@ -23,7 +23,80 @@ import (
 	winch "github.com/winchci/winch/pkg"
 	"github.com/winchci/winch/pkg/config"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"sync"
 )
+
+type Job struct {
+	Dir      string
+	Filename string
+}
+
+type builder func(ctx context.Context, cfg *config.Config, job Job) error
+
+func monoBuild(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, jobs chan Job, errC chan error, build builder) {
+	defer wg.Done()
+
+	for job := range jobs {
+		if err := build(ctx, cfg, job); err != nil {
+			errC <- err
+			return
+		}
+	}
+}
+
+func simple(ctx context.Context, cfg *config.Config, job Job) error {
+	c := exec.Command("winch", "ci", "-f", job.Filename)
+	c.Dir = job.Dir
+	c.Stdout = winch.NewLogTailer(os.Stdout, fmt.Sprintf("%s |", winch.ColorName(winch.PadName(job.Dir, 12))))
+	c.Stderr = winch.NewLogTailer(os.Stderr, fmt.Sprintf("%s |", winch.ColorName(winch.PadName(job.Dir, 12))))
+	return c.Run()
+}
+
+func mono(ctx context.Context, cfg *config.Config) error {
+	fmt.Println("Starting an incremental build on monorepo")
+
+	files, err := filepath.Glob("*/winch.yml")
+	if err != nil {
+		return err
+	}
+
+	if cfg.Parallelism == 0 {
+		cfg.Parallelism = 3
+	}
+
+	C := make(chan Job)
+	errC := make(chan error, cfg.Parallelism)
+	wg := sync.WaitGroup{}
+
+	for i := 0; i < cfg.Parallelism; i++ {
+		wg.Add(1)
+		go monoBuild(ctx, &wg, cfg, C, errC, simple)
+	}
+
+	for _, file := range files {
+		job := Job{
+			Dir:      filepath.Dir(file),
+			Filename: filepath.Base(file),
+		}
+
+		C <- job
+	}
+	close(C)
+
+	wg.Wait()
+
+	for {
+		select {
+		case err := <-errC:
+			return err
+
+		default:
+			return nil
+		}
+	}
+}
 
 func ci(ctx context.Context) error {
 	if os.Getenv("CI") != "true" {
@@ -69,6 +142,13 @@ func ci(ctx context.Context) error {
 		}
 	}
 
+	if cfg.Mono {
+		err = mono(ctx, cfg)
+		if err != nil {
+			return err
+		}
+	}
+
 	if cfg.Install.IsEnabled() {
 		fmt.Println("Installing")
 
@@ -88,11 +168,13 @@ func ci(ctx context.Context) error {
 		}
 	}
 
-	fmt.Println("Creating assets")
-	for _, asset := range cfg.Assets {
-		err = generateAsset(ctx, asset)
-		if err != nil {
-			return err
+	if len(cfg.Assets) > 0 {
+		fmt.Println("Creating assets")
+		for _, asset := range cfg.Assets {
+			err = generateAsset(ctx, asset)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
