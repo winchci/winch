@@ -33,24 +33,24 @@ type Job struct {
 	Filename string
 }
 
-type builder func(ctx context.Context, cfg *config.Config, job Job) error
+type builder func(ctx context.Context, cfg *config.Config, job Job, width int) error
 
-func monoBuild(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, jobs chan Job, errC chan error, build builder) {
+func monoBuild(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, jobs chan Job, errC chan error, build builder, width int) {
 	defer wg.Done()
 
 	for job := range jobs {
-		if err := build(ctx, cfg, job); err != nil {
+		if err := build(ctx, cfg, job, width); err != nil {
 			errC <- err
 			return
 		}
 	}
 }
 
-func simple(ctx context.Context, cfg *config.Config, job Job) error {
+func simple(ctx context.Context, cfg *config.Config, job Job, width int) error {
 	c := exec.Command("winch", "ci", "--incremental", "-f", job.Filename)
 	c.Dir = job.Dir
-	c.Stdout = winch.NewLogTailer(os.Stdout, fmt.Sprintf("%s |", winch.ColorName(winch.PadName(job.Dir, 12))))
-	c.Stderr = winch.NewLogTailer(os.Stderr, fmt.Sprintf("%s |", winch.ColorName(winch.PadName(job.Dir, 12))))
+	c.Stdout = winch.NewLogTailer(os.Stdout, fmt.Sprintf("%s |", winch.ColorName(winch.PadName(job.Dir, width))))
+	c.Stderr = winch.NewLogTailer(os.Stderr, fmt.Sprintf("%s |", winch.ColorName(winch.PadName(job.Dir, width))))
 	return c.Run()
 }
 
@@ -58,10 +58,14 @@ func mono(ctx context.Context, cfg *config.Config, commits []*winch.Commit) erro
 	fmt.Println("Starting an incremental build on monorepo")
 	fmt.Printf("Parallelism: %d\n", cfg.Parallelism)
 
+	width := 0
 	affectedPaths := make(map[string]bool)
 	for _, commit := range commits {
 		if len(commit.Tag) == 0 {
 			for _, affectedPath := range commit.AffectedPaths {
+				if len(affectedPath) > width {
+					width = len(affectedPath)
+				}
 				affectedPaths[affectedPath] = true
 			}
 		}
@@ -82,7 +86,7 @@ func mono(ctx context.Context, cfg *config.Config, commits []*winch.Commit) erro
 
 	for i := 0; i < cfg.Parallelism; i++ {
 		wg.Add(1)
-		go monoBuild(ctx, &wg, cfg, C, errC, simple)
+		go monoBuild(ctx, &wg, cfg, C, errC, simple, width)
 	}
 
 	for _, file := range files {
