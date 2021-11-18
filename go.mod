@@ -7,7 +7,7 @@ require (
 	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/containerd/containerd v1.5.7 // indirect
 	github.com/coreos/go-semver v0.3.0
-	github.com/docker/docker v20.10.10+incompatible
+	github.com/docker/docker v20.10.11+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/golang/protobuf v1.5.2
 	github.com/golang/snappy v0.0.4 // indirect
@@ -19,6 +19,7 @@ require (
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db
+	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/nwaples/rardecode v1.1.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.10 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
