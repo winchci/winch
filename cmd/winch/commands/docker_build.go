@@ -20,9 +20,53 @@ import (
 	"context"
 	"fmt"
 	"github.com/spf13/cobra"
+	winch "github.com/winchci/winch/pkg"
 	"github.com/winchci/winch/pkg/config"
 	"github.com/winchci/winch/pkg/docker"
 )
+
+func buildDocker(ctx context.Context, cfg *config.Config) error {
+	releases, _, err := makeReleases(ctx, cfg)
+	if err != nil {
+		return err
+	}
+
+	version, _ := getVersionFromReleases(releases)
+
+	if cfg.Dockerfiles != nil {
+		for _, dockerfile := range cfg.Dockerfiles {
+			if dockerfile.IsEnabled() {
+				err := writeDockerfile(ctx, cfg, dockerfile, version, dockerfile.File)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	for _, dockerConfig := range append(cfg.Dockers, cfg.Docker) {
+		if dockerConfig.IsEnabled() && winch.CheckFilters(ctx, dockerConfig.Branches, dockerConfig.Tags) {
+			d, err := docker.NewDocker(dockerConfig, cfg.Name)
+			if err != nil {
+				return err
+			}
+
+			fmt.Printf("Logging into Docker repository %s\n", dockerConfig.Server)
+			err = d.Login(ctx)
+			if err != nil {
+				return err
+			}
+
+			fmt.Printf("Building Docker image %s/%s\n", dockerConfig.Organization, dockerConfig.Repository)
+			err = d.Build(ctx, cfg, version)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
 
 func dockerBuild(ctx context.Context) error {
 	ctx, err := config.LoadConfig(ctx)
@@ -32,38 +76,7 @@ func dockerBuild(ctx context.Context) error {
 
 	cfg := config.ConfigFromContext(ctx)
 
-	releases, _, err := makeReleases(ctx, cfg)
-	if err != nil {
-		return err
-	}
-
-	version, _ := getVersionFromReleases(releases)
-
-	dockers := cfg.Dockers
-	if cfg.Docker != nil {
-		dockers = append(dockers, cfg.Docker)
-	}
-
-	for _, dockerConfig := range dockers {
-		d, err := docker.NewDocker(dockerConfig, cfg.Name)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println("Logging into DockerHub")
-		err = d.Login(ctx)
-		if err != nil {
-			return err
-		}
-
-		fmt.Print("Building Docker image")
-		err = d.Build(ctx, cfg, version)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return buildDocker(ctx, cfg)
 }
 
 func init() {
