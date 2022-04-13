@@ -1,4 +1,4 @@
-FROM golang:1.17-alpine
+FROM golang:1.18-alpine
 ENV DOCKER_CONFIG /etc/docker
 RUN apk add --update --no-cache curl docker git openssh-client zip
 RUN mkdir -p $DOCKER_CONFIG/cli-plugins && \
