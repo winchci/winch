@@ -33,28 +33,32 @@ type Job struct {
 	Filename string
 }
 
-type builder func(ctx context.Context, cfg *config.Config, job Job, width int) error
+type builder func(ctx context.Context, cfg *config.Config, job Job, width int, dryRun bool) error
 
-func monoBuild(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, jobs chan Job, errC chan error, build builder, width int) {
+func monoBuild(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, jobs chan Job, errC chan error, build builder, width int, dryRun bool) {
 	defer wg.Done()
 
 	for job := range jobs {
-		if err := build(ctx, cfg, job, width); err != nil {
+		if err := build(ctx, cfg, job, width, dryRun); err != nil {
 			errC <- err
 			return
 		}
 	}
 }
 
-func simple(ctx context.Context, cfg *config.Config, job Job, width int) error {
-	c := exec.Command("winch", "ci", "--incremental", "-f", job.Filename)
+func simple(ctx context.Context, cfg *config.Config, job Job, width int, dryRun bool) error {
+	args := []string{"ci", "--incremental", "-f", job.Filename}
+	if dryRun {
+		args = append(args, "--dry-run")
+	}
+	c := exec.Command("winch", args...)
 	c.Dir = job.Dir
 	c.Stdout = winch.NewLogTailer(os.Stdout, fmt.Sprintf("%s |", winch.ColorName(winch.PadName(job.Dir, width))))
 	c.Stderr = winch.NewLogTailer(os.Stderr, fmt.Sprintf("%s |", winch.ColorName(winch.PadName(job.Dir, width))))
 	return c.Run()
 }
 
-func mono(ctx context.Context, cfg *config.Config, commits []*winch.Commit) error {
+func mono(ctx context.Context, cfg *config.Config, commits []*winch.Commit, dryRun bool) error {
 	fmt.Println("Starting an incremental build on monorepo")
 	fmt.Printf("Parallelism: %d\n", cfg.Parallelism)
 
@@ -86,7 +90,7 @@ func mono(ctx context.Context, cfg *config.Config, commits []*winch.Commit) erro
 
 	for i := 0; i < cfg.Parallelism; i++ {
 		wg.Add(1)
-		go monoBuild(ctx, &wg, cfg, C, errC, simple, width)
+		go monoBuild(ctx, &wg, cfg, C, errC, simple, width, dryRun)
 	}
 
 	for _, file := range files {
@@ -115,10 +119,6 @@ func mono(ctx context.Context, cfg *config.Config, commits []*winch.Commit) erro
 }
 
 func ci(ctx context.Context) error {
-	if os.Getenv("CI") != "true" {
-		return fmt.Errorf("must be running in a CI environment")
-	}
-
 	ctx, err := config.LoadConfig(ctx)
 	if err != nil {
 		return err
@@ -133,6 +133,17 @@ func ci(ctx context.Context) error {
 	var version, prerelease string
 
 	cmd := config.CommandFromContext(ctx)
+
+	dryRun, err := cmd.Flags().GetBool("dry-run")
+	if err != nil {
+		return err
+	}
+
+	if dryRun {
+		fmt.Println("Performing a dry run build")
+	} else if os.Getenv("CI") != "true" {
+		return fmt.Errorf("must be running in a CI environment")
+	}
 
 	incremental, err := cmd.Flags().GetBool("incremental")
 	if err != nil {
@@ -174,7 +185,7 @@ func ci(ctx context.Context) error {
 		}
 
 		if cfg.Mono {
-			err = mono(ctx, cfg, commits)
+			err = mono(ctx, cfg, commits, dryRun)
 			if err != nil {
 				return err
 			}
@@ -257,7 +268,7 @@ func ci(ctx context.Context) error {
 		}
 	}
 
-	if cfg.Release.IsEnabled() && !incremental {
+	if !dryRun && !incremental && cfg.Release.IsEnabled() {
 		fmt.Println("Releasing")
 		err = release2(ctx, cfg)
 		if err != nil {
@@ -265,9 +276,16 @@ func ci(ctx context.Context) error {
 		}
 	}
 
-	err = publish2(ctx, cfg)
-	if err != nil {
-		return err
+	if !dryRun {
+		err = publish2(ctx, cfg)
+		if err != nil {
+			return err
+		}
+	} else {
+		err = buildDocker(ctx, cfg)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -282,6 +300,7 @@ func init() {
 	}
 
 	cmd.Flags().Bool("incremental", false, "perform an incremental build")
+	cmd.Flags().Bool("dry-run", false, "perform a dry-run CI build without releasing or publishing")
 
 	rootCmd.AddCommand(cmd)
 }

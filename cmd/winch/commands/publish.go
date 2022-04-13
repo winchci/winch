@@ -96,15 +96,8 @@ func publish2(ctx context.Context, cfg *config.Config) error {
 		}
 	}
 
-	if cfg.Dockerfiles != nil {
-		for _, dockerfile := range cfg.Dockerfiles {
-			if dockerfile.IsEnabled() {
-				err = writeDockerfile(ctx, cfg, dockerfile, version, dockerfile.File)
-				if err != nil {
-					return err
-				}
-			}
-		}
+	if err = buildDocker(ctx, cfg); err != nil {
+		return err
 	}
 
 	for _, dockerConfig := range append(cfg.Dockers, cfg.Docker) {
@@ -116,12 +109,6 @@ func publish2(ctx context.Context, cfg *config.Config) error {
 
 			fmt.Printf("Logging into Docker repository %s\n", dockerConfig.Server)
 			err = d.Login(ctx)
-			if err != nil {
-				return err
-			}
-
-			fmt.Printf("Building Docker image %s/%s\n", dockerConfig.Organization, dockerConfig.Repository)
-			err = d.Build(ctx, cfg, version)
 			if err != nil {
 				return err
 			}
