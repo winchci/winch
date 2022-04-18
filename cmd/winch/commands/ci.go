@@ -168,7 +168,7 @@ func ci(ctx context.Context) error {
 		}
 
 		fmt.Println("Creating version")
-		err = writeVersion(cfg, version, prerelease)
+		err = writeVersion(ctx, cfg, version, prerelease)
 		if err != nil {
 			return err
 		}
@@ -184,7 +184,7 @@ func ci(ctx context.Context) error {
 		prerelease = os.Getenv("BUILD_PRERELEASE")
 
 		fmt.Println("Creating version")
-		err = writeVersion(cfg, version, prerelease)
+		err = writeVersion(ctx, cfg, version, prerelease)
 		if err != nil {
 			return err
 		}
