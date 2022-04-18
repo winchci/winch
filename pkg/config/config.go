@@ -115,8 +115,10 @@ type Config struct {
 	Test          *RunConfig                   `json:"test,omitempty" yaml:"test,omitempty"`
 	AfterTest     *RunConfig                   `json:"after_test,omitempty" yaml:"after_test,omitempty"`
 	Changelog     *TemplateFileConfig          `json:"changelog,omitempty" yaml:"changelog,omitempty"`
+	BeforeVersion *RunConfig                   `json:"before_version,omitempty" yaml:"before_version,omitempty"`
 	Version       *TemplateFileConfig          `json:"version,omitempty" yaml:"version,omitempty"`
 	Versions      []*TemplateFileConfig        `json:"versions,omitempty" yaml:"versions,omitempty"`
+	AfterVersion  *RunConfig                   `json:"after_version,omitempty" yaml:"after_version,omitempty"`
 	GitHubAction  *TemplateFileConfig          `json:"githubaction,omitempty" yaml:"githubaction,omitempty"`
 	Dockerfile    *TemplateFileConfig          `json:"dockerfile,omitempty" yaml:"dockerfile,omitempty"`
 	Dockerfiles   []*TemplateFileConfig        `json:"dockerfiles,omitempty" yaml:"dockerfiles,omitempty"`
@@ -163,7 +165,7 @@ var (
 			Enabled: makeBool(false),
 		},
 		GitHubAction: &TemplateFileConfig{
-			Enabled:  makeBool(false),
+			Enabled: makeBool(false),
 		},
 		Homebrew: homebrew,
 	}

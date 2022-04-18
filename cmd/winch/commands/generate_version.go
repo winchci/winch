@@ -38,9 +38,13 @@ type VersionBumpInfo struct {
 	Prerelease  string
 }
 
-func writeVersionToFile(cfg *config.Config, file *config.TemplateFileConfig, version VersionBumpInfo) error {
+func writeVersionToFile(ctx context.Context, cfg *config.Config, file *config.TemplateFileConfig, version VersionBumpInfo) error {
 	if !file.IsEnabled() {
 		return nil
+	}
+
+	if err := winch.Run(ctx, cfg.BeforeVersion, cfg); err != nil {
+		return err
 	}
 
 	filenames, err := filepath.Glob(filepath.Join(cfg.BasePath, file.File))
@@ -172,7 +176,7 @@ func writeVersionToFile(cfg *config.Config, file *config.TemplateFileConfig, ver
 		}
 	}
 
-	return nil
+	return winch.Run(ctx, cfg.AfterVersion, cfg)
 }
 
 func getVersionFromReleases(releases []*winch.Release) (string, string) {
@@ -193,7 +197,7 @@ func getVersionFromReleases(releases []*winch.Release) (string, string) {
 	return version, prerelease
 }
 
-func writeVersion(cfg *config.Config, version, prerelease string) error {
+func writeVersion(ctx context.Context, cfg *config.Config, version, prerelease string) error {
 	vbi := VersionBumpInfo{
 		Name:        cfg.Name,
 		Description: cfg.Description,
@@ -202,13 +206,13 @@ func writeVersion(cfg *config.Config, version, prerelease string) error {
 		Prerelease:  prerelease,
 	}
 
-	err := writeVersionToFile(cfg, cfg.Version, vbi)
+	err := writeVersionToFile(ctx, cfg, cfg.Version, vbi)
 	if err != nil {
 		return err
 	}
 
 	for _, file := range cfg.Versions {
-		err := writeVersionToFile(cfg, file, vbi)
+		err := writeVersionToFile(ctx, cfg, file, vbi)
 		if err != nil {
 			return err
 		}
@@ -243,7 +247,7 @@ func generateVersion(ctx context.Context) error {
 		cfg.Version.File = output
 	}
 
-	return writeVersion(cfg, version, prerelease)
+	return writeVersion(ctx, cfg, version, prerelease)
 }
 
 func init() {
