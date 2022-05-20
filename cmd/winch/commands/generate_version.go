@@ -185,7 +185,6 @@ func getVersionFromReleases(cfg *config.Config, releases []*winch.Release) (stri
 
 	if len(releases) > 0 {
 		version = releases[0].Version
-		prerelease = ""
 	} else {
 		version = "v0.0.0"
 		if len(prerelease) == 0 {
