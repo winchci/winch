@@ -98,6 +98,7 @@ type Config struct {
 	Description   string                       `json:"description,omitempty" yaml:"description,omitempty"`
 	Repository    string                       `json:"repository,omitempty" yaml:"repository,omitempty"`
 	Local         bool                         `json:"local,omitempty" yaml:"local,omitempty"`
+	Prerelease    string                       `json:"prerelease,omitempty" yaml:"prerelease,omitempty"`
 	Verbose       bool                         `json:"verbose,omitempty" yaml:"verbose,omitempty"`
 	Quiet         bool                         `json:"quiet,omitempty" yaml:"quiet,omitempty"`
 	Mono          bool                         `json:"mono,omitempty" yaml:"mono,omitempty"`

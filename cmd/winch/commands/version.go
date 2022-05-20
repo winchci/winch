@@ -36,7 +36,7 @@ func showVersion(ctx context.Context) error {
 		return err
 	}
 
-	version, prerelease := getVersionFromReleases(releases)
+	version, prerelease := getVersionFromReleases(cfg, releases)
 
 	if len(prerelease) > 0 {
 		fmt.Printf("%s-%s\n", version, prerelease)
