@@ -72,7 +72,7 @@ func publish2(ctx context.Context, cfg *config.Config) error {
 		return err
 	}
 
-	version, _ := getVersionFromReleases(releases)
+	version, _ := getVersionFromReleases(cfg, releases)
 
 	if cfg.Transom.IsEnabled() {
 		fmt.Println("Publishing to Transom")

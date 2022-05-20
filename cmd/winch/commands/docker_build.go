@@ -31,7 +31,7 @@ func buildDocker(ctx context.Context, cfg *config.Config) error {
 		return err
 	}
 
-	version, _ := getVersionFromReleases(releases)
+	version, _ := getVersionFromReleases(cfg, releases)
 
 	if cfg.Dockerfiles != nil {
 		for _, dockerfile := range cfg.Dockerfiles {

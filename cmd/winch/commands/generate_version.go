@@ -179,15 +179,18 @@ func writeVersionToFile(ctx context.Context, cfg *config.Config, file *config.Te
 	return winch.Run(ctx, cfg.AfterVersion, cfg)
 }
 
-func getVersionFromReleases(releases []*winch.Release) (string, string) {
+func getVersionFromReleases(cfg *config.Config, releases []*winch.Release) (string, string) {
 	var version string
-	var prerelease string
+	prerelease := cfg.Prerelease
+
 	if len(releases) > 0 {
 		version = releases[0].Version
 		prerelease = ""
 	} else {
 		version = "v0.0.0"
-		prerelease = "dev"
+		if len(prerelease) == 0 {
+			prerelease = "dev"
+		}
 	}
 
 	if version[0] == 'v' {
@@ -236,7 +239,7 @@ func generateVersion(ctx context.Context) error {
 		return err
 	}
 
-	version, prerelease := getVersionFromReleases(releases)
+	version, prerelease := getVersionFromReleases(cfg, releases)
 
 	output, err := cmd.Flags().GetString("output")
 	if err != nil {

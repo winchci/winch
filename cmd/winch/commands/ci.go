@@ -156,7 +156,7 @@ func ci(ctx context.Context) error {
 			return err
 		}
 
-		version, prerelease = getVersionFromReleases(releases)
+		version, prerelease = getVersionFromReleases(cfg, releases)
 		fmt.Printf("Version: %s\n", version)
 		fmt.Printf("Prerelease: %s\n", prerelease)
 

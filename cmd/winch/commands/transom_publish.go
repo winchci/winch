@@ -138,7 +138,7 @@ func transomPublish(ctx context.Context) error {
 		return err
 	}
 
-	v, _ := getVersionFromReleases(releases)
+	v, _ := getVersionFromReleases(cfg, releases)
 
 	return publishToTransom(ctx, cfg, v)
 }

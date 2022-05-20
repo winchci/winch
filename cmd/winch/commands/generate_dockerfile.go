@@ -85,7 +85,7 @@ func generateDockerfile(ctx context.Context) error {
 		return err
 	}
 
-	version, _ := getVersionFromReleases(releases)
+	version, _ := getVersionFromReleases(cfg, releases)
 
 	output, err := cmd.Flags().GetString("output")
 	if err != nil {

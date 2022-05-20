@@ -80,6 +80,10 @@ func release2(ctx context.Context, cfg *config.Config) error {
 		tag = changelog.Releases[0].Version
 	}
 
+	if len(cfg.Prerelease) > 0 {
+		tag = tag + "-" + cfg.Prerelease
+	}
+
 	client, err := winch.NewGitHub(ctx, cfg.Repository)
 	if err != nil {
 		return err
