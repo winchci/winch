@@ -19,14 +19,14 @@ package pkg
 import (
 	"context"
 	"fmt"
-	"os"
-	"path"
-	"strings"
-
 	"github.com/coreos/go-semver/semver"
+	"github.com/winchci/winch/pkg/config"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
+	"os"
+	"path"
+	"strings"
 )
 
 type Git struct {
@@ -76,7 +76,7 @@ func (g Git) GetTags(_ context.Context) (map[string]string, error) {
 	return tags, nil
 }
 
-func (g Git) GetCommits(_ context.Context) ([]*Commit, error) {
+func (g Git) GetCommits(ctx context.Context) ([]*Commit, error) {
 	l, err := g.repo.Log(&git.LogOptions{})
 	if err != nil {
 		if err.Error() == "reference not found" {
@@ -86,17 +86,22 @@ func (g Git) GetCommits(_ context.Context) ([]*Commit, error) {
 		return nil, err
 	}
 
+	cfg := config.ConfigFromContext(ctx)
+
 	var commits []*Commit
 	err = l.ForEach(func(c *object.Commit) error {
-		stats, err := c.Stats()
-		if err != nil {
-			return err
-		}
-
 		affectedPaths := make(map[string]bool)
-		for _, stat := range stats {
-			if stat.Addition > 0 || stat.Deletion > 0 {
-				affectedPaths[strings.Split(stat.Name, "/")[0]] = true
+
+		if cfg.Mono {
+			stats, err := c.Stats()
+			if err != nil {
+				return err
+			}
+
+			for _, stat := range stats {
+				if stat.Addition > 0 || stat.Deletion > 0 {
+					affectedPaths[strings.Split(stat.Name, "/")[0]] = true
+				}
 			}
 		}
 
