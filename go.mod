@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/coreos/go-semver v0.3.0
-	github.com/docker/docker v20.10.16+incompatible
+	github.com/docker/docker v20.10.17+incompatible
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v28 v28.1.1
 	github.com/iancoleman/strcase v0.2.0
