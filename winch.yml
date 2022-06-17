@@ -83,6 +83,13 @@ dockers:
   context: .
   branches:
     only: main
+- dockerfile: docker/helm/Dockerfile
+  organization: winchci
+  repository: helm
+  tag: latest
+  context: .
+  branches:
+    only: main
 environment:
   GO111MODULE: on
   CGO_ENABLED: 0
