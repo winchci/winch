@@ -75,7 +75,12 @@ func mono(ctx context.Context, cfg *config.Config, commits []*winch.Commit, dryR
 		}
 	}
 
-	files, err := filepath.Glob("*/winch.yml")
+	path := make([]string, cfg.MonoDepth+1)
+	for i := range path {
+		path[i] = "*"
+	}
+	path[len(path)-1] = "winch.yml"
+	files, err := filepath.Glob(filepath.Join(path...))
 	if err != nil {
 		return err
 	}

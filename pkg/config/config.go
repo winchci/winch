@@ -102,6 +102,7 @@ type Config struct {
 	Verbose       bool                         `json:"verbose,omitempty" yaml:"verbose,omitempty"`
 	Quiet         bool                         `json:"quiet,omitempty" yaml:"quiet,omitempty"`
 	Mono          bool                         `json:"mono,omitempty" yaml:"mono,omitempty"`
+	MonoDepth     int                          `json:"mono_depth,omitempty" yaml:"mono_depth,omitempty"`
 	Parallelism   int                          `json:"arallelism,omitempty" yaml:"parallelism,omitempty"`
 	Language      string                       `json:"language,omitempty" yaml:"language,omitempty"`
 	Toolchain     string                       `json:"toolchain,omitempty" yaml:"toolchain,omitempty"`
@@ -595,6 +596,11 @@ func LoadConfig(ctx context.Context) (context.Context, error) {
 	// Force git if a monorepo
 	if cfg.Mono {
 		cfg.Local = true
+	}
+
+	// A value less than 1 does not make sense here
+	if cfg.MonoDepth < 1 {
+		cfg.MonoDepth = 1
 	}
 
 	return AddConfigToContext(ctx, cfg), nil
