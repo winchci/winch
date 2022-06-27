@@ -286,6 +286,29 @@ var (
 		Homebrew: homebrew,
 	}
 
+	DefaultHelmConfig = &Config{
+		Language: "helm",
+		Install: &RunConfig{
+			Enabled: makeBool(false),
+			Name:    "Download modules",
+			//Command: "yarn",
+		},
+		Build: &RunConfig{
+			Enabled: makeBool(false),
+			Name:    "Build",
+			//Command: "yarn run build",
+		},
+		Test: &RunConfig{
+			Enabled: makeBool(false),
+			Name:    "Test",
+			//Command: "yarn test",
+		},
+		Version: &TemplateFileConfig{
+			Enabled: makeBool(false),
+			//File:    "package.json",
+		},
+	}
+
 	DefaultJavaMavenConfig = &Config{
 		Language:  "java",
 		Toolchain: "mvn",
@@ -477,6 +500,9 @@ func LoadConfig(ctx context.Context) (context.Context, error) {
 		default:
 			defaultConfig = DefaultNpmConfig
 		}
+
+	case "helm":
+		defaultConfig = DefaultHelmConfig
 
 	case "java":
 		defaultConfig = DefaultJavaMavenConfig
