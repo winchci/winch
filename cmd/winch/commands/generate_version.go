@@ -64,7 +64,7 @@ func writeVersionToFile(ctx context.Context, cfg *config.Config, file *config.Te
 				b = []byte("{}")
 			}
 
-			var j map[string]interface{}
+			var j map[string]any
 			err = json.Unmarshal(b, &j)
 			if err != nil {
 				return err
@@ -79,10 +79,10 @@ func writeVersionToFile(ctx context.Context, cfg *config.Config, file *config.Te
 			v := j
 			for _, key := range path[0 : len(path)-1] {
 				if _, ok := v[key]; !ok {
-					v[key] = make(map[string]interface{})
+					v[key] = make(map[string]any)
 				}
 
-				v = v[key].(map[string]interface{})
+				v = v[key].(map[string]any)
 			}
 
 			v[path[len(path)-1]] = strings.TrimPrefix(version.Version, "v")
@@ -103,7 +103,7 @@ func writeVersionToFile(ctx context.Context, cfg *config.Config, file *config.Te
 				b = []byte("version:\n")
 			}
 
-			var j map[string]interface{}
+			var j map[string]any
 			err = yaml.Unmarshal(b, &j)
 			if err != nil {
 				return err
@@ -118,10 +118,10 @@ func writeVersionToFile(ctx context.Context, cfg *config.Config, file *config.Te
 			v := j
 			for _, key := range path[0 : len(path)-1] {
 				if _, ok := v[key]; !ok {
-					v[key] = make(map[string]interface{})
+					v[key] = make(map[string]any)
 				}
 
-				v = v[key].(map[string]interface{})
+				v = v[key].(map[string]any)
 			}
 
 			v[path[len(path)-1]] = strings.TrimPrefix(version.Version, "v")

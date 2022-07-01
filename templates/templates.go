@@ -19,7 +19,9 @@ package templates
 import (
 	"bytes"
 	"context"
+	"embed"
 	"github.com/iancoleman/strcase"
+	"io/fs"
 	"io/ioutil"
 	"net/url"
 	"path"
@@ -30,9 +32,12 @@ import (
 	"github.com/mitchellh/colorstring"
 )
 
+//go:embed *.tmpl
+var Assets embed.FS
+
 var t *template.Template
 
-var funcs = map[string]interface{}{
+var funcs = map[string]any{
 	"snake":           strcase.ToSnake,
 	"screaming_snake": strcase.ToScreamingSnake,
 	"kebab":           strcase.ToKebab,
@@ -53,7 +58,7 @@ var funcs = map[string]interface{}{
 }
 
 // Execute the named template using the data as the initial context
-func Execute(_ context.Context, name string, data interface{}) (string, error) {
+func Execute(_ context.Context, name string, data any) (string, error) {
 	b := new(bytes.Buffer)
 	err := t.ExecuteTemplate(b, name, data)
 	if err != nil {
@@ -74,31 +79,24 @@ func Load(dir string, path string) *template.Template {
 func init() {
 	t = template.New("cli").Funcs(funcs)
 
-	d, err := Assets.Open("/")
-	if err != nil {
-		panic(err)
-	}
-
-	defer d.Close()
-
-	tree, err := d.Readdir(-1)
-	if err != nil {
-		panic(err)
-	}
-
-	for _, f := range tree {
-		if path.Ext(f.Name()) == ".tmpl" {
-			fh, err := Assets.Open(f.Name())
-			if err != nil {
-				panic(err)
-			}
-
-			data, err := ioutil.ReadAll(fh)
-			if err != nil {
-				panic(err)
-			}
-
-			template.Must(t.New(f.Name()).Parse(string(data)))
+	err := fs.WalkDir(Assets, ".", func(filename string, d fs.DirEntry, err error) error {
+		if path.Ext(filename) != ".tmpl" {
+			return nil
 		}
+		fh, err := Assets.Open(filename)
+		if err != nil {
+			panic(err)
+		}
+
+		data, err := ioutil.ReadAll(fh)
+		if err != nil {
+			panic(err)
+		}
+
+		template.Must(t.New(filename).Parse(string(data)))
+		return nil
+	})
+	if err != nil {
+		panic(err)
 	}
 }
