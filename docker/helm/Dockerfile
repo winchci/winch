@@ -2,7 +2,7 @@ FROM jnorwood/helm-docs:latest AS helm-docs
 
 FROM alpine:latest
 ENV DOCKER_CONFIG /etc/docker
-RUN apk add --update --no-cache curl docker git openssh-client zip jq bash openssl yq
+RUN apk update && apk upgrade && apk add --update --no-cache curl docker git openssh-client zip jq bash openssl yq
 RUN mkdir -p $DOCKER_CONFIG/cli-plugins && \
     curl -fsSL https://github.com/docker/scan-cli-plugin/releases/latest/download/docker-scan_linux_amd64 -o $DOCKER_CONFIG/cli-plugins/docker-scan && \
     chmod +x $DOCKER_CONFIG/cli-plugins/docker-scan
