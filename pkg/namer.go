@@ -18,8 +18,6 @@ package pkg
 
 import (
 	"context"
-	"io/ioutil"
-	"log"
 	"math/rand"
 	"strings"
 	"time"
@@ -43,27 +41,6 @@ func Name(_ context.Context, segments ...string) string {
 func init() {
 	rand.Seed(time.Now().Unix())
 
-	root, err := wordlists.Assets.Open("/")
-	if err != nil {
-		panic(err)
-	}
-
-	files, err := root.Readdir(-1)
-	if err != nil {
-		panic(err)
-	}
-
-	for _, asset := range files {
-		f, err := wordlists.Assets.Open(asset.Name())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		s, err := ioutil.ReadAll(f)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		WordLists[strings.TrimSuffix(asset.Name(), ".txt")] = strings.Split(string(s), "\n")
-	}
+	WordLists["adjectives"] = strings.Split(wordlists.Adjectives, "\n")
+	WordLists["animals"] = strings.Split(wordlists.Animals, "\n")
 }

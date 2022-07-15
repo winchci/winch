@@ -139,7 +139,7 @@ func (t Transom) Publish(ctx context.Context, in *PublishRequest) (*PublishRespo
 	return &resp, nil
 }
 
-func (t *Transom) do(ctx context.Context, baseUrl string, url string, in interface{}, out interface{}, headers http.Header) error {
+func (t *Transom) do(ctx context.Context, baseUrl string, url string, in any, out any, headers http.Header) error {
 	b := new(bytes.Buffer)
 	var contentType string
 

@@ -53,7 +53,7 @@ func writeHomebrew(ctx context.Context, cfg *config.Config, t *config.HomebrewCo
 
 	vars := t.Variables
 	if vars == nil {
-		vars = make(map[string]interface{})
+		vars = make(map[string]any)
 	}
 	if _, ok := vars["Name"]; !ok {
 		vars["Name"] = cfg.Name
