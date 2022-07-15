@@ -9,6 +9,6 @@ RUN mkdir -p $DOCKER_CONFIG/cli-plugins && \
 RUN curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 RUN curl -fsSL https://install-cli.jfrog.io | sh
 COPY --from=helm-docs /usr/bin/helm-docs /usr/bin/helm-docs
-#COPY bin/linux-amd64/winch /usr/local/bin/winch
+COPY bin/linux-amd64/winch /usr/local/bin/winch
 COPY docker/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
