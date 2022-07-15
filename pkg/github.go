@@ -19,6 +19,7 @@ package pkg
 import (
 	"context"
 	"fmt"
+	"github.com/winchci/winch/pkg/config"
 	"io/ioutil"
 	"mime"
 	"os"
@@ -88,9 +89,11 @@ func (g GitHub) GetTags(ctx context.Context) (map[string]string, error) {
 func (g GitHub) GetCommits(ctx context.Context) ([]*Commit, error) {
 	var commits []*Commit
 
+	cfg := config.ConfigFromContext(ctx)
+
 	c, _, err := g.client.Repositories.ListCommits(ctx, g.owner, g.repo, &github.CommitsListOptions{
 		ListOptions: github.ListOptions{
-			PerPage: 100,
+			PerPage: cfg.CommitLength,
 		},
 	})
 	if err != nil {

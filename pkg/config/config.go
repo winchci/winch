@@ -98,6 +98,7 @@ type Config struct {
 	Description   string                       `json:"description,omitempty" yaml:"description,omitempty"`
 	Repository    string                       `json:"repository,omitempty" yaml:"repository,omitempty"`
 	Local         bool                         `json:"local,omitempty" yaml:"local,omitempty"`
+	CommitLength  int                          `json:"commit_length,omitempty" yaml:"commit_length,omitempty"`
 	Prerelease    string                       `json:"prerelease,omitempty" yaml:"prerelease,omitempty"`
 	Verbose       bool                         `json:"verbose,omitempty" yaml:"verbose,omitempty"`
 	Quiet         bool                         `json:"quiet,omitempty" yaml:"quiet,omitempty"`
@@ -169,7 +170,8 @@ var (
 		GitHubAction: &TemplateFileConfig{
 			Enabled: makeBool(false),
 		},
-		Homebrew: homebrew,
+		Homebrew:     homebrew,
+		CommitLength: 100,
 	}
 
 	DefaultDockerConfig = &Config{
@@ -190,7 +192,8 @@ var (
 			Enabled:  makeBool(true),
 			Template: "!docker_action.tmpl",
 		},
-		Homebrew: homebrew,
+		Homebrew:     homebrew,
+		CommitLength: 100,
 	}
 
 	DefaultGoConfig = &Config{
@@ -221,7 +224,8 @@ var (
 		Dockerfile: &TemplateFileConfig{
 			Template: "!go_dockerfile.tmpl",
 		},
-		Homebrew: homebrew,
+		Homebrew:     homebrew,
+		CommitLength: 100,
 	}
 
 	DefaultNpmConfig = &Config{
@@ -252,7 +256,8 @@ var (
 		Dockerfile: &TemplateFileConfig{
 			Template: "!node_npm_dockerfile.tmpl",
 		},
-		Homebrew: homebrew,
+		Homebrew:     homebrew,
+		CommitLength: 100,
 	}
 
 	DefaultYarnConfig = &Config{
@@ -284,30 +289,25 @@ var (
 		Dockerfile: &TemplateFileConfig{
 			Template: "!node_yarn_dockerfile.tmpl",
 		},
-		Homebrew: homebrew,
+		Homebrew:     homebrew,
+		CommitLength: 100,
 	}
 
 	DefaultHelmConfig = &Config{
 		Language: "helm",
 		Install: &RunConfig{
 			Enabled: makeBool(false),
-			Name:    "Download modules",
-			//Command: "yarn",
 		},
 		Build: &RunConfig{
 			Enabled: makeBool(false),
-			Name:    "Build",
-			//Command: "yarn run build",
 		},
 		Test: &RunConfig{
 			Enabled: makeBool(false),
-			Name:    "Test",
-			//Command: "yarn test",
 		},
 		Version: &TemplateFileConfig{
 			Enabled: makeBool(false),
-			//File:    "package.json",
 		},
+		CommitLength: 100,
 	}
 
 	DefaultJavaMavenConfig = &Config{
@@ -343,7 +343,8 @@ var (
 		Dockerfile: &TemplateFileConfig{
 			Template: "!java_mvn_dockerfile.tmpl",
 		},
-		Homebrew: homebrew,
+		Homebrew:     homebrew,
+		CommitLength: 100,
 	}
 
 	DefaultScalaSbtConfig = &Config{
@@ -374,7 +375,8 @@ var (
 		Dockerfile: &TemplateFileConfig{
 			Template: "!scala_sbt_dockerfile.tmpl",
 		},
-		Homebrew: homebrew,
+		Homebrew:     homebrew,
+		CommitLength: 100,
 	}
 
 	DefaultPythonConfig = &Config{
@@ -403,7 +405,8 @@ var (
 		Dockerfile: &TemplateFileConfig{
 			Template: "!python_dockerfile.tmpl",
 		},
-		Homebrew: homebrew,
+		Homebrew:     homebrew,
+		CommitLength: 100,
 	}
 )
 
@@ -627,6 +630,11 @@ func LoadConfig(ctx context.Context) (context.Context, error) {
 	// A value less than 1 does not make sense here
 	if cfg.MonoDepth < 1 {
 		cfg.MonoDepth = 1
+	}
+
+	// A value less than 1 does not make sense here
+	if cfg.CommitLength < 1 {
+		cfg.CommitLength = defaultConfig.CommitLength
 	}
 
 	return AddConfigToContext(ctx, cfg), nil

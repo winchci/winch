@@ -23,7 +23,7 @@ import (
 	"github.com/winchci/winch/pkg/config"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
-	"gopkg.in/src-d/go-git.v4/plumbing/object"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -90,13 +90,20 @@ func (g Git) GetCommits(ctx context.Context) ([]*Commit, error) {
 	cfg := config.ConfigFromContext(ctx)
 
 	var commits []*Commit
-	err = l.ForEach(func(c *object.Commit) error {
+	for i := 0; i < cfg.CommitLength; i++ {
+		c, err := l.Next()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+
 		affectedPaths := make(map[string]bool)
 
 		if cfg.Mono {
 			stats, err := c.Stats()
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			for _, stat := range stats {
@@ -122,10 +129,10 @@ func (g Git) GetCommits(ctx context.Context) ([]*Commit, error) {
 		}
 
 		commits = append(commits, commit)
-		return nil
-	})
-	if err != nil {
-		return nil, err
+
+		if cfg.Verbose {
+			fmt.Printf("Parsed through commit %s\n", commit.Hash)
+		}
 	}
 
 	return commits, nil
