@@ -26,6 +26,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -100,7 +101,12 @@ func (g Git) GetCommits(ctx context.Context) ([]*Commit, error) {
 
 			for _, stat := range stats {
 				if stat.Addition > 0 || stat.Deletion > 0 {
-					affectedPaths[strings.Split(stat.Name, "/")[0]] = true
+					path := strings.Split(stat.Name, "/")
+					depth := len(path)
+					if len(path) > cfg.MonoDepth {
+						depth = cfg.MonoDepth
+					}
+					affectedPaths[filepath.Join(path[0:depth]...)] = true
 				}
 			}
 		}
