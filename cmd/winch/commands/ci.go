@@ -61,6 +61,7 @@ func simple(ctx context.Context, cfg *config.Config, job Job, width int, dryRun 
 func mono(ctx context.Context, cfg *config.Config, commits []*winch.Commit, dryRun bool) error {
 	fmt.Println("Starting an incremental build on monorepo")
 	fmt.Printf("Parallelism: %d\n", cfg.Parallelism)
+	fmt.Printf("Depth: %d\n", cfg.MonoDepth)
 
 	width := 0
 	affectedPaths := make(map[string]bool)
