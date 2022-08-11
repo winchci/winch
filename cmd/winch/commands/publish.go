@@ -102,7 +102,7 @@ func publish2(ctx context.Context, cfg *config.Config) error {
 
 	for _, dockerConfig := range append(cfg.Dockers, cfg.Docker) {
 		if dockerConfig.IsEnabled() && winch.CheckFilters(ctx, dockerConfig.Branches, dockerConfig.Tags) {
-			d, err := docker.NewDocker(dockerConfig, cfg.Name)
+			d, err := docker.NewDocker(dockerConfig, cfg.Name, nil)
 			if err != nil {
 				return err
 			}

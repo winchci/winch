@@ -1,19 +1,3 @@
-/*
-winch - Universal Build and Release Tool
-Copyright (C) 2021 Ketch Kloud, Inc.
-
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU
-General Public License as published by the Free Software Foundation, either version 3 of the License,
-or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
-License for more details.
-
-You should have received a copy of the GNU General Public License along with this program. If not,
-see <https://www.gnu.org/licenses/>.
-*/
-
 package docker
 
 import (
@@ -23,20 +7,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/coreos/go-semver/semver"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"github.com/mholt/archiver/v3"
 	"github.com/winchci/winch/pkg/config"
-	"github.com/winchci/winch/version"
 )
 
 type dockerErrorMsg struct {
@@ -50,12 +31,13 @@ type dockerMsg struct {
 }
 
 type Docker struct {
-	cfg    *config.DockerConfig
-	client *client.Client
-	token  string
+	cfg             *config.DockerConfig
+	client          *client.Client
+	contextProvider *ContextProvider
+	token           string
 }
 
-func NewDocker(cfg *config.DockerConfig, name string) (*Docker, error) {
+func NewDocker(cfg *config.DockerConfig, name string, contextProvider *ContextProvider) (*Docker, error) {
 	if cfg.Context == "" {
 		cfg.Context = "."
 	}
@@ -120,8 +102,9 @@ func NewDocker(cfg *config.DockerConfig, name string) (*Docker, error) {
 	}
 
 	return &Docker{
-		cfg:    cfg,
-		client: c,
+		cfg:             cfg,
+		client:          c,
+		contextProvider: contextProvider,
 	}, nil
 }
 
@@ -149,37 +132,40 @@ func (d *Docker) Login(ctx context.Context) error {
 	return nil
 }
 
-func (d Docker) Build(ctx context.Context, cfg *config.Config, tag string) error {
-	dir, err := ioutil.TempDir("", version.Name)
+func (d *Docker) Build(ctx context.Context, cfg *config.Config, version string) error {
+	contextArchive, err := d.contextProvider.GetContext(d.cfg.Context)
 	if err != nil {
 		return err
 	}
 
-	defer os.RemoveAll(dir)
-
-	context := path.Join(dir, "context.tar")
-	err = archiver.Archive([]string{d.cfg.Context}, context)
-	if err != nil {
-		return err
-	}
-
-	f, err := os.Open(context)
+	f, err := os.Open(contextArchive)
 	if err != nil {
 		return err
 	}
 
 	defer f.Close()
 
+	v, err := semver.NewVersion(version)
+	if err != nil {
+		return err
+	}
+
 	var tags []string
 	baseTag := fmt.Sprintf("%s/%s/%s", d.cfg.Server, d.cfg.Organization, d.cfg.Repository)
 	if d.cfg.Tag == "latest" {
 		tags = append(tags, fmt.Sprintf("%s:%s", baseTag, d.cfg.Tag))
-		tags = append(tags, fmt.Sprintf("%s:%s", baseTag, tag))
+		tags = append(tags, fmt.Sprintf("%s:%s", baseTag, version))
+		tags = append(tags, fmt.Sprintf("%s:%d", baseTag, v.Major))
+		tags = append(tags, fmt.Sprintf("%s:%d.%d", baseTag, v.Major, v.Minor))
 	} else if len(d.cfg.Tag) > 0 {
 		tags = append(tags, fmt.Sprintf("%s:%s", baseTag, d.cfg.Tag))
-		tags = append(tags, fmt.Sprintf("%s:%s-%s", baseTag, tag, d.cfg.Tag))
+		tags = append(tags, fmt.Sprintf("%s:%s-%s", baseTag, version, d.cfg.Tag))
+		tags = append(tags, fmt.Sprintf("%s:%d-%s", baseTag, v.Major, d.cfg.Tag))
+		tags = append(tags, fmt.Sprintf("%s:%d.%d-%s", baseTag, v.Major, v.Minor, d.cfg.Tag))
 	} else {
-		tags = append(tags, fmt.Sprintf("%s:%s", baseTag, tag))
+		tags = append(tags, fmt.Sprintf("%s:%s", baseTag, version))
+		tags = append(tags, fmt.Sprintf("%s:%d", baseTag, v.Major))
+		tags = append(tags, fmt.Sprintf("%s:%d.%d", baseTag, v.Major, v.Minor))
 	}
 
 	if d.cfg.Labels == nil {
@@ -187,7 +173,7 @@ func (d Docker) Build(ctx context.Context, cfg *config.Config, tag string) error
 	}
 	d.cfg.Labels["org.opencontainers.image.source"] = cfg.Repository
 	d.cfg.Labels["org.opencontainers.image.created"] = time.Now().UTC().Format(time.RFC3339)
-	d.cfg.Labels["org.opencontainers.image.version"] = tag
+	d.cfg.Labels["org.opencontainers.image.version"] = version
 	d.cfg.Labels["org.opencontainers.image.title"] = cfg.Name
 	d.cfg.Labels["org.opencontainers.image.description"] = cfg.Description
 
@@ -212,7 +198,7 @@ func (d Docker) Build(ctx context.Context, cfg *config.Config, tag string) error
 	return printDockerResponse(resp.Body)
 }
 
-func (d Docker) Publish(ctx context.Context) error {
+func (d *Docker) Publish(ctx context.Context) error {
 	image := fmt.Sprintf("%s/%s/%s", d.cfg.Server, d.cfg.Organization, d.cfg.Repository)
 	snykAuthToken := os.Getenv("SNYK_AUTH_TOKEN")
 
@@ -263,7 +249,7 @@ type dockerConfig struct {
 	Auths map[string]types.AuthConfig `json:"auths"`
 }
 
-func (d Docker) loadConfig() (*dockerConfig, error) {
+func (d *Docker) loadConfig() (*dockerConfig, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return nil, err

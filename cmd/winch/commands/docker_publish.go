@@ -38,7 +38,7 @@ func dockerPublish(ctx context.Context) error {
 			return nil
 		}
 
-		d, err := docker.NewDocker(dockerConfig, cfg.Name)
+		d, err := docker.NewDocker(dockerConfig, cfg.Name, nil)
 		if err != nil {
 			return err
 		}
