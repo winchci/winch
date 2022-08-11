@@ -67,11 +67,6 @@ func (p *ContextProvider) GetContext(contextPath string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-	} else if _, err = os.Stat(".gitignore"); err == nil {
-		patterns, err = dockerignore.ReadIgnoreFile(".gitignore")
-		if err != nil {
-			return "", err
-		}
 	} else {
 		patterns, err = dockerignore.ReadIgnore(io.NopCloser(strings.NewReader(".git/")))
 		if err != nil {
