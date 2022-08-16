@@ -43,6 +43,13 @@ dockers:
     only: main
 - dockerfile: docker/go/1.18/Dockerfile
   organization: winchci
+  repository: golang-1.18
+  tag: latest
+  context: .
+  branches:
+    only: main
+- dockerfile: docker/go/1.19/Dockerfile
+  organization: winchci
   repository: golang
   tag: latest
   context: .
