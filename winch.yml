@@ -13,6 +13,12 @@ build:
     mkdir -p bin/$GOOS-$GOARCH
 
     go build -o bin/$GOOS-$GOARCH/winch ./cmd/winch/main.go
+
+    export GOOS=darwin
+    export GOARCH=arm64
+    mkdir -p bin/$GOOS-$GOARCH
+
+    go build -o bin/$GOOS-$GOARCH/winch ./cmd/winch/main.go
 versions:
 - file: version/*_gen.go
   template: version/winch_version.tmpl
@@ -59,6 +65,7 @@ dockers:
   repository: golang
   tag: latest
   context: .
+  scan: false
   platforms:
     - linux/amd64
     - linux/arm64
