@@ -13,6 +13,12 @@ build:
     mkdir -p bin/$GOOS-$GOARCH
 
     go build -o bin/$GOOS-$GOARCH/winch ./cmd/winch/main.go
+
+    export GOOS=darwin
+    export GOARCH=arm64
+    mkdir -p bin/$GOOS-$GOARCH
+
+    go build -o bin/$GOOS-$GOARCH/winch ./cmd/winch/main.go
 versions:
 - file: version/*_gen.go
   template: version/winch_version.tmpl
@@ -39,6 +45,9 @@ dockers:
   repository: winch
   tag: latest
   context: .
+  platforms:
+    - linux/amd64
+    - linux/arm64
   branches:
     only: main
 - dockerfile: docker/go/1.18/Dockerfile
@@ -46,6 +55,9 @@ dockers:
   repository: golang-1.18
   tag: latest
   context: .
+  platforms:
+    - linux/amd64
+    - linux/arm64
   branches:
     only: main
 - dockerfile: docker/go/1.19/Dockerfile
@@ -53,6 +65,10 @@ dockers:
   repository: golang
   tag: latest
   context: .
+  scan: false
+  platforms:
+    - linux/amd64
+    - linux/arm64
   branches:
     only: main
 - dockerfile: docker/node/16/Dockerfile
@@ -60,6 +76,9 @@ dockers:
   repository: node-16
   tag: latest
   context: .
+  platforms:
+    - linux/amd64
+    - linux/arm64
   branches:
     only: main
 - dockerfile: docker/node/16/Dockerfile
@@ -67,6 +86,9 @@ dockers:
   repository: node-latest
   tag: latest
   context: .
+  platforms:
+    - linux/amd64
+    - linux/arm64
   branches:
     only: main
 - dockerfile: docker/python/3.9/Dockerfile
@@ -74,6 +96,9 @@ dockers:
   repository: python
   tag: latest
   context: .
+  platforms:
+    - linux/amd64
+    - linux/arm64
   branches:
     only: main
 - dockerfile: docker/helm/Dockerfile
@@ -81,6 +106,9 @@ dockers:
   repository: helm
   tag: latest
   context: .
+  platforms:
+    - linux/amd64
+    - linux/arm64
   branches:
     only: main
 environment:
