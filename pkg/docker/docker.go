@@ -238,7 +238,11 @@ func (d *Docker) build(ctx context.Context, cfg *config.Config, version string, 
 			}
 			args = append(args, image)
 
-			fmt.Println(strings.ReplaceAll(strings.Join(args, " "), snykAuthToken, "********"))
+			output := strings.Join(args, " ")
+			if len(snykAuthToken) > 0 {
+				output = strings.ReplaceAll(output, snykAuthToken, "********")
+			}
+			fmt.Println(output)
 			cmd = exec.Command(args[0], args[1:]...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
