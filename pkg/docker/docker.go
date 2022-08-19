@@ -141,7 +141,10 @@ func (d *Docker) Build(ctx context.Context, cfg *config.Config, version string) 
 func (d *Docker) build(ctx context.Context, cfg *config.Config, version string, push bool) error {
 	d.name = strcase.ToSnake(pkg.Name(ctx, "adjectives", "animals"))
 
-	args := []string{"docker", "buildx", "create", "--name", d.name, "--use", "--buildkitd-flags", "--allow-insecure-entitlement network.host"}
+	args := []string{"docker", "buildx", "create", "--name", d.name, "--use", "--buildkitd-flags", "--allow-insecure-entitlement network.host", "--driver", "docker-container"}
+	if len(d.cfg.Platforms) > 0 {
+		args = append(args, "--platform", strings.Join(d.cfg.Platforms, ","))
+	}
 	fmt.Println(strings.Join(args, " "))
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdout = os.Stdout
@@ -158,21 +161,21 @@ func (d *Docker) build(ctx context.Context, cfg *config.Config, version string, 
 	}
 
 	var tags []string
-	baseTag := fmt.Sprintf("%s/%s/%s", d.cfg.Server, d.cfg.Organization, d.cfg.Repository)
+	image := fmt.Sprintf("%s/%s/%s", d.cfg.Server, d.cfg.Organization, d.cfg.Repository)
 	if d.cfg.Tag == "latest" {
-		tags = append(tags, fmt.Sprintf("%s:%s", baseTag, d.cfg.Tag))
-		tags = append(tags, fmt.Sprintf("%s:%s", baseTag, version))
-		tags = append(tags, fmt.Sprintf("%s:%d", baseTag, v.Major))
-		tags = append(tags, fmt.Sprintf("%s:%d.%d", baseTag, v.Major, v.Minor))
+		tags = append(tags, fmt.Sprintf("%s:%s", image, d.cfg.Tag))
+		tags = append(tags, fmt.Sprintf("%s:%s", image, version))
+		tags = append(tags, fmt.Sprintf("%s:%d", image, v.Major))
+		tags = append(tags, fmt.Sprintf("%s:%d.%d", image, v.Major, v.Minor))
 	} else if len(d.cfg.Tag) > 0 {
-		tags = append(tags, fmt.Sprintf("%s:%s", baseTag, d.cfg.Tag))
-		tags = append(tags, fmt.Sprintf("%s:%s-%s", baseTag, version, d.cfg.Tag))
-		tags = append(tags, fmt.Sprintf("%s:%d-%s", baseTag, v.Major, d.cfg.Tag))
-		tags = append(tags, fmt.Sprintf("%s:%d.%d-%s", baseTag, v.Major, v.Minor, d.cfg.Tag))
+		tags = append(tags, fmt.Sprintf("%s:%s", image, d.cfg.Tag))
+		tags = append(tags, fmt.Sprintf("%s:%s-%s", image, version, d.cfg.Tag))
+		tags = append(tags, fmt.Sprintf("%s:%d-%s", image, v.Major, d.cfg.Tag))
+		tags = append(tags, fmt.Sprintf("%s:%d.%d-%s", image, v.Major, v.Minor, d.cfg.Tag))
 	} else {
-		tags = append(tags, fmt.Sprintf("%s:%s", baseTag, version))
-		tags = append(tags, fmt.Sprintf("%s:%d", baseTag, v.Major))
-		tags = append(tags, fmt.Sprintf("%s:%d.%d", baseTag, v.Major, v.Minor))
+		tags = append(tags, fmt.Sprintf("%s:%s", image, version))
+		tags = append(tags, fmt.Sprintf("%s:%d", image, v.Major))
+		tags = append(tags, fmt.Sprintf("%s:%d.%d", image, v.Major, v.Minor))
 	}
 
 	if d.cfg.Labels == nil {
@@ -184,7 +187,7 @@ func (d *Docker) build(ctx context.Context, cfg *config.Config, version string, 
 	d.cfg.Labels["org.opencontainers.image.title"] = cfg.Name
 	d.cfg.Labels["org.opencontainers.image.description"] = cfg.Description
 
-	args = []string{"docker", "buildx", "build", "--file", d.cfg.Dockerfile, "--allow", "network.host", "--builder", d.name}
+	args = []string{"docker", "buildx", "build", "--file", d.cfg.Dockerfile, "--allow", "network.host", "--builder", d.name, "--compress", "--progress", "plain", "--cache-from=type=gha", "--cache-to=type=gha", "--squash"}
 	if push {
 		args = append(args, "--push")
 		if len(d.cfg.Platforms) > 0 {
@@ -226,11 +229,10 @@ func (d *Docker) build(ctx context.Context, cfg *config.Config, version string, 
 	}
 
 	if !push {
-		image := fmt.Sprintf("%s/%s/%s", d.cfg.Server, d.cfg.Organization, d.cfg.Repository)
 		snykAuthToken := os.Getenv("SNYK_AUTH_TOKEN")
 
 		if (d.cfg.Scan == nil || *d.cfg.Scan) && len(snykAuthToken) > 0 {
-			args := []string{"docker", "scan", "--accept-license", "--login"}
+			args = []string{"docker", "scan", "--accept-license", "--login"}
 			if len(snykAuthToken) > 0 {
 				fmt.Println(strings.Join(append(args, "--token", "*****"), " "))
 
@@ -239,11 +241,11 @@ func (d *Docker) build(ctx context.Context, cfg *config.Config, version string, 
 				fmt.Println(strings.Join(args, " "))
 			}
 
-			cmd := exec.Command(args[0], args[1:]...)
+			cmd = exec.Command(args[0], args[1:]...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 
-			err := cmd.Run()
+			err = cmd.Run()
 			if err != nil {
 				return err
 			}
