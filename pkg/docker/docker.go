@@ -187,7 +187,7 @@ func (d *Docker) build(ctx context.Context, cfg *config.Config, version string, 
 	d.cfg.Labels["org.opencontainers.image.title"] = cfg.Name
 	d.cfg.Labels["org.opencontainers.image.description"] = cfg.Description
 
-	args = []string{"docker", "buildx", "build", "--file", d.cfg.Dockerfile, "--allow", "network.host", "--builder", d.name, "--compress", "--progress", "plain", "--cache-from=type=gha", "--cache-to=type=gha", "--squash"}
+	args = []string{"docker", "buildx", "build", "--file", d.cfg.Dockerfile, "--allow", "network.host", "--builder", d.name, "--compress", "--progress", "plain", "--cache-from=type=gha", "--cache-to=type=gha"}
 	if push {
 		args = append(args, "--push")
 		if len(d.cfg.Platforms) > 0 {
