@@ -203,7 +203,11 @@ func (d *Docker) build(ctx context.Context, cfg *config.Config, version string, 
 	}
 
 	for k, v := range d.cfg.BuildArgs {
-		args = append(args, "--build-arg", fmt.Sprintf("%s=%s", k, v))
+		if v != nil {
+			args = append(args, "--build-arg", fmt.Sprintf("%s=%s", k, *v))
+		} else {
+			args = append(args, "--build-arg", k)
+		}
 	}
 
 	if len(d.cfg.Target) > 0 {
