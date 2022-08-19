@@ -141,7 +141,7 @@ func (d *Docker) Build(ctx context.Context, cfg *config.Config, version string) 
 func (d *Docker) build(ctx context.Context, cfg *config.Config, version string, push bool) error {
 	d.name = strcase.ToSnake(pkg.Name(ctx, "adjectives", "animals"))
 
-	args := []string{"docker", "buildx", "create", "--name", d.name, "--use", "--buildkitd-flags", "--allow-insecure-entitlement network.host", "--driver", "docker-container"}
+	args := []string{"docker", "buildx", "create", "--name", d.name, "--use", "--buildkitd-flags", "--allow-insecure-entitlement network.host"}
 	fmt.Println(strings.Join(args, " "))
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdout = os.Stdout
