@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/spf13/cobra"
-	winch "github.com/winchci/winch/pkg"
 	"github.com/winchci/winch/pkg/config"
 	"github.com/winchci/winch/pkg/docker"
 )
@@ -45,7 +44,7 @@ func buildDocker(ctx context.Context, cfg *config.Config) error {
 	}
 
 	for _, dockerConfig := range append(cfg.Dockers, cfg.Docker) {
-		if dockerConfig.IsEnabled() && winch.CheckFilters(ctx, dockerConfig.Branches, dockerConfig.Tags) {
+		if dockerConfig.IsEnabled() {
 			d, err := docker.NewDocker(dockerConfig, cfg.Name)
 			if err != nil {
 				return err
