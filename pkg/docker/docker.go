@@ -232,26 +232,13 @@ func (d *Docker) build(ctx context.Context, cfg *config.Config, version string, 
 		snykAuthToken := os.Getenv("SNYK_AUTH_TOKEN")
 
 		if (d.cfg.Scan == nil || *d.cfg.Scan) && len(snykAuthToken) > 0 {
-			args = []string{"docker", "scan", "--accept-license", "--login"}
+			args = []string{"docker", "scan", "--accept-license", "--severity", "medium", "--file", d.cfg.Dockerfile}
 			if len(snykAuthToken) > 0 {
-				fmt.Println(strings.Join(append(args, "--token", "*****"), " "))
-
 				args = append(args, "--token", snykAuthToken)
-			} else {
-				fmt.Println(strings.Join(args, " "))
 			}
+			args = append(args, image)
 
-			cmd = exec.Command(args[0], args[1:]...)
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-
-			err = cmd.Run()
-			if err != nil {
-				return err
-			}
-
-			args = []string{"docker", "scan", "--accept-license", "--severity", "medium", image}
-			fmt.Println(strings.Join(args, " "))
+			fmt.Println(strings.ReplaceAll(strings.Join(args, " "), snykAuthToken, "********"))
 			cmd = exec.Command(args[0], args[1:]...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
