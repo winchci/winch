@@ -44,16 +44,9 @@ func buildDocker(ctx context.Context, cfg *config.Config) error {
 		}
 	}
 
-	contextProvider, err := docker.NewContextProvider()
-	if err != nil {
-		return err
-	}
-
-	defer contextProvider.Close()
-
 	for _, dockerConfig := range append(cfg.Dockers, cfg.Docker) {
 		if dockerConfig.IsEnabled() && winch.CheckFilters(ctx, dockerConfig.Branches, dockerConfig.Tags) {
-			d, err := docker.NewDocker(dockerConfig, cfg.Name, contextProvider)
+			d, err := docker.NewDocker(dockerConfig, cfg.Name)
 			if err != nil {
 				return err
 			}
@@ -61,14 +54,18 @@ func buildDocker(ctx context.Context, cfg *config.Config) error {
 			fmt.Printf("Logging into Docker repository %s\n", dockerConfig.Server)
 			err = d.Login(ctx)
 			if err != nil {
+				d.Close(ctx)
 				return err
 			}
 
 			fmt.Printf("Building Docker image %s/%s\n", dockerConfig.Organization, dockerConfig.Repository)
 			err = d.Build(ctx, cfg, version)
 			if err != nil {
+				d.Close(ctx)
 				return err
 			}
+
+			d.Close(ctx)
 		}
 	}
 

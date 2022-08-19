@@ -39,6 +39,9 @@ dockers:
   repository: winch
   tag: latest
   context: .
+  platforms:
+    - linux/amd64
+    - linux/arm64
   branches:
     only: main
 - dockerfile: docker/go/1.18/Dockerfile

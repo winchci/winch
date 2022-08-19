@@ -17,43 +17,25 @@ see <https://www.gnu.org/licenses/>.
 package docker
 
 import (
-	"bufio"
+	"bytes"
 	"context"
-	"encoding/base64"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/coreos/go-semver/semver"
-	"io"
+	"github.com/iancoleman/strcase"
+	"github.com/winchci/winch/pkg"
+	"github.com/winchci/winch/pkg/config"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
-	"github.com/winchci/winch/pkg/config"
 )
 
-type dockerErrorMsg struct {
-	Message string `json:"message"`
-}
-
-type dockerMsg struct {
-	Status      string         `json:"status"`
-	Message     string         `json:"stream"`
-	ErrorDetail dockerErrorMsg `json:"errorDetail"`
-}
-
 type Docker struct {
-	cfg             *config.DockerConfig
-	client          *client.Client
-	contextProvider *ContextProvider
-	token           string
+	cfg  *config.DockerConfig
+	name string
 }
 
-func NewDocker(cfg *config.DockerConfig, name string, contextProvider *ContextProvider) (*Docker, error) {
+func NewDocker(cfg *config.DockerConfig, name string) (*Docker, error) {
 	if cfg.Context == "" {
 		cfg.Context = "."
 	}
@@ -112,54 +94,63 @@ func NewDocker(cfg *config.DockerConfig, name string, contextProvider *ContextPr
 	cfg.Username = os.ExpandEnv(cfg.Username)
 	cfg.Password = os.ExpandEnv(cfg.Password)
 
-	c, err := client.NewClientWithOpts(client.FromEnv)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Docker{
-		cfg:             cfg,
-		client:          c,
-		contextProvider: contextProvider,
+		cfg: cfg,
 	}, nil
 }
 
+func (d *Docker) Close(ctx context.Context) error {
+	if len(d.name) > 0 {
+		args := []string{"docker", "buildx", "rm", "--force", d.name}
+		fmt.Println(strings.Join(args, " "))
+		cmd := exec.Command(args[0], args[1:]...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+
+		d.name = ""
+	}
+
+	return nil
+}
+
 func (d *Docker) Login(ctx context.Context) error {
-	_, err := d.client.RegistryLogin(ctx, types.AuthConfig{
-		Username:      d.cfg.Username,
-		Password:      d.cfg.Password,
-		ServerAddress: d.cfg.Server,
-	})
+	args := []string{"docker", "login", "--username", d.cfg.Username, "--password-stdin", d.cfg.Server}
+	fmt.Println(strings.Join(args, " "))
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Stdin = bytes.NewReader([]byte(d.cfg.Password))
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
 	if err != nil {
 		return err
 	}
-
-	b, err := json.Marshal(types.AuthConfig{
-		Username:      d.cfg.Username,
-		Password:      d.cfg.Password,
-		ServerAddress: d.cfg.Server,
-	})
-	if err != nil {
-		return err
-	}
-
-	d.token = base64.StdEncoding.EncodeToString(b)
 
 	return nil
 }
 
 func (d *Docker) Build(ctx context.Context, cfg *config.Config, version string) error {
-	contextArchive, err := d.contextProvider.GetContext(d.cfg.Context)
+	return d.build(ctx, cfg, version, false)
+}
+
+func (d *Docker) build(ctx context.Context, cfg *config.Config, version string, push bool) error {
+	d.name = strcase.ToSnake(pkg.Name(ctx, "adjectives", "animals"))
+
+	args := []string{"docker", "buildx", "create", "--name", d.name, "--use", "--buildkitd-flags", "--allow-insecure-entitlement network.host", "--driver", "docker-container"}
+	fmt.Println(strings.Join(args, " "))
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
 	if err != nil {
 		return err
 	}
-
-	f, err := os.Open(contextArchive)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
 
 	v, err := semver.NewVersion(version)
 	if err != nil {
@@ -193,159 +184,82 @@ func (d *Docker) Build(ctx context.Context, cfg *config.Config, version string) 
 	d.cfg.Labels["org.opencontainers.image.title"] = cfg.Name
 	d.cfg.Labels["org.opencontainers.image.description"] = cfg.Description
 
-	c, err := d.loadConfig()
+	args = []string{"docker", "buildx", "build", "--file", d.cfg.Dockerfile, "--allow", "network.host", "--builder", d.name}
+	if push {
+		args = append(args, "--push")
+		if len(d.cfg.Platforms) > 0 {
+			args = append(args, "--platform", strings.Join(d.cfg.Platforms, ","))
+		}
+	} else {
+		args = append(args, "--load")
+	}
+
+	for _, tag := range tags {
+		args = append(args, "--tag", tag)
+	}
+
+	for k, v := range d.cfg.Labels {
+		args = append(args, "--label", fmt.Sprintf("%s=%s", k, v))
+	}
+
+	for k, v := range d.cfg.BuildArgs {
+		args = append(args, "--build-arg", fmt.Sprintf("%s=%s", k, v))
+	}
+
+	if len(d.cfg.Target) > 0 {
+		args = append(args, "--target", d.cfg.Target)
+	}
+
+	args = append(args, d.cfg.Context)
+	fmt.Println(strings.Join(args, " "))
+	cmd = exec.Command(args[0], args[1:]...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err = cmd.Run()
 	if err != nil {
 		return err
 	}
 
-	resp, err := d.client.ImageBuild(ctx, f, types.ImageBuildOptions{
-		Tags:        tags,
-		Dockerfile:  d.cfg.Dockerfile,
-		BuildArgs:   d.cfg.BuildArgs,
-		Labels:      d.cfg.Labels,
-		Target:      d.cfg.Target,
-		AuthConfigs: c.Auths,
-	})
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
+	if !push {
+		image := fmt.Sprintf("%s/%s/%s", d.cfg.Server, d.cfg.Organization, d.cfg.Repository)
+		snykAuthToken := os.Getenv("SNYK_AUTH_TOKEN")
 
-	return printDockerResponse(resp.Body)
-}
+		if (d.cfg.Scan == nil || *d.cfg.Scan) && len(snykAuthToken) > 0 {
+			args := []string{"docker", "scan", "--accept-license", "--login"}
+			if len(snykAuthToken) > 0 {
+				fmt.Println(strings.Join(append(args, "--token", "*****"), " "))
 
-func (d *Docker) Publish(ctx context.Context) error {
-	image := fmt.Sprintf("%s/%s/%s", d.cfg.Server, d.cfg.Organization, d.cfg.Repository)
-	snykAuthToken := os.Getenv("SNYK_AUTH_TOKEN")
+				args = append(args, "--token", snykAuthToken)
+			} else {
+				fmt.Println(strings.Join(args, " "))
+			}
 
-	if (d.cfg.Scan == nil || *d.cfg.Scan) && len(snykAuthToken) > 0 {
-		args := []string{"docker", "scan", "--accept-license", "--login"}
-		if len(snykAuthToken) > 0 {
-			fmt.Println(strings.Join(append(args, "--token", "*****"), " "))
+			cmd := exec.Command(args[0], args[1:]...)
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
 
-			args = append(args, "--token", snykAuthToken)
-		} else {
-			fmt.Println(strings.Join(args, " "))
-		}
-
-		cmd := exec.Command(args[0], args[1:]...)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-
-		err := cmd.Run()
-		if err != nil {
-			return err
-		}
-
-		args = []string{"docker", "scan", "--accept-license", "--severity", "medium", image}
-		fmt.Println(strings.Join(args, " "))
-		cmd = exec.Command(args[0], args[1:]...)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-
-		err = cmd.Run()
-		if err != nil {
-			return err
-		}
-	}
-
-	resp, err := d.client.ImagePush(ctx, image, types.ImagePushOptions{
-		RegistryAuth: d.token,
-		All:          true,
-	})
-	if err != nil {
-		return err
-	}
-	defer resp.Close()
-
-	return printDockerResponse(resp)
-}
-
-type dockerConfig struct {
-	Auths map[string]types.AuthConfig `json:"auths"`
-}
-
-func (d *Docker) loadConfig() (*dockerConfig, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return nil, err
-	}
-
-	filename := filepath.Join(home, ".docker", "config.json")
-
-	f, err := os.Open(filename)
-	if err != nil {
-		filename = filepath.Join("/etc", "docker", "config.json")
-
-		f, _ = os.Open(filename)
-	}
-
-	cfg := &dockerConfig{
-		Auths: make(map[string]types.AuthConfig),
-	}
-
-	if f != nil {
-		defer f.Close()
-		err = json.NewDecoder(f).Decode(cfg)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	for k, v := range cfg.Auths {
-		if len(v.Auth) > 0 {
-			b, err := base64.StdEncoding.DecodeString(v.Auth)
+			err := cmd.Run()
 			if err != nil {
-				return nil, err
+				return err
 			}
 
-			parts := strings.Split(string(b), ":")
-			if len(parts) >= 2 {
-				cfg.Auths[k] = types.AuthConfig{
-					Username: parts[0],
-					Password: parts[1],
-				}
+			args = []string{"docker", "scan", "--accept-license", "--severity", "medium", image}
+			fmt.Println(strings.Join(args, " "))
+			cmd = exec.Command(args[0], args[1:]...)
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+
+			err = cmd.Run()
+			if err != nil {
+				return err
 			}
-		}
-	}
-
-	cfg.Auths[d.cfg.Server] = types.AuthConfig{
-		Username:      d.cfg.Username,
-		Password:      d.cfg.Password,
-		ServerAddress: d.cfg.Server,
-	}
-
-	return cfg, nil
-}
-
-func printDockerResponse(body io.ReadCloser) error {
-	r := bufio.NewReader(body)
-	for {
-		line, err := r.ReadBytes('\n')
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return err
-		}
-
-		var msg dockerMsg
-		err = json.Unmarshal(line, &msg)
-		if err != nil {
-			return err
-		}
-
-		if len(msg.Message) > 0 {
-			os.Stdout.WriteString(strings.TrimSpace(msg.Message))
-			os.Stdout.WriteString("\n")
-		}
-		if len(msg.Status) > 0 {
-			os.Stdout.WriteString(strings.TrimSpace(msg.Status))
-			os.Stdout.WriteString("\n")
-		}
-		if len(msg.ErrorDetail.Message) > 0 {
-			return errors.New(msg.ErrorDetail.Message)
 		}
 	}
 
 	return nil
+}
+
+func (d *Docker) Publish(ctx context.Context, cfg *config.Config, version string) error {
+	return d.build(ctx, cfg, version, true)
 }

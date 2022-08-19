@@ -33,27 +33,39 @@ func dockerPublish(ctx context.Context) error {
 
 	cfg := config.ConfigFromContext(ctx)
 
+	releases, _, err := makeReleases(ctx, cfg)
+	if err != nil {
+		return err
+	}
+
+	version, _ := getVersionFromReleases(cfg, releases)
+
 	for _, dockerConfig := range append(cfg.Dockers, cfg.Docker) {
 		if !winch.CheckFilters(ctx, dockerConfig.Branches, dockerConfig.Tags) {
 			return nil
 		}
 
-		d, err := docker.NewDocker(dockerConfig, cfg.Name, nil)
+		d, err := docker.NewDocker(dockerConfig, cfg.Name)
 		if err != nil {
+			d.Close(ctx)
 			return err
 		}
 
 		fmt.Printf("Logging into Docker repository %s\n", dockerConfig.Server)
 		err = d.Login(ctx)
 		if err != nil {
+			d.Close(ctx)
 			return err
 		}
 
 		fmt.Printf("Publishing Docker image to %s\n", dockerConfig.Server)
-		err = d.Publish(ctx)
+		err = d.Publish(ctx, cfg, version)
 		if err != nil {
+			d.Close(ctx)
 			return err
 		}
+
+		d.Close(ctx)
 	}
 
 	return nil
